@@ -1,0 +1,17 @@
+### Sample INMF Input Files
+# Include the name of the scene, this will be used to name the output plots and results
+name = Hawaii_baseline
+
+# Include the filename of scene
+file = H2013292233238.L1B_ISS
+
+# Name the types of endmember you want to use to initialize the INMF, should be a comma separated list
+members = Vegetation,Water,Soil,Cloud,Atmosphere
+
+# Optional Inputs, These inputs are optional but can be used to subset the scene, improve the initial guess or set the INMF parameters
+wvl_ind = 9,96
+
+SZA = 36.79
+SunElliptic = 1.00787
+
+max_i = 500

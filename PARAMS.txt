@@ -1,0 +1,17 @@
+# PARAMS.txt
+# Path to HICO data
+path = /home/wrightla/../../data/wrightla/HICO/
+# Path to MODTRAN DATA
+modpath = /home/wrightla/../../data/wrightla/MODTRAN/NMF_HICO/
+# Path or Irradiance Data
+irradpath = /home/wrightla/../../data/wrightla/MODTRAN/SUN01med2irradwnNormt.dat
+# Path to HICO Reflectance Data
+hicoreflpath = /home/wrightla/NMF/py_pro/ASTER_REFL_HICO.mat
+# Path to HICO Vicarious Calibration Data
+caldat = /home/wrightla/NMF/HICO_VicariousGains.dat
+
+# Number of processors to use for multiprocessing
+procnum = 1
+
+# Maximum number or iterations
+maxi = 500
