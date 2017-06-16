@@ -1,16 +1,23 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Sun Jan 22 23:41:47 2017
-Last Modified on Feb, 20, 2017
-@author: Logan Wright
+nmf.py - contains 3 NMF routines
 
+Created on Sun Jan 22 23:41:47 2017
+Last Modified on Jun, 16, 2017
+author: Logan Wright
+
+Description:
+    This file contains three NMF routines:
+        nmf.NMF, Canonical NMF as described by Lee & Seung, 2000
+        nmf.INMF, Informed NMF routine developed by the author
+        nmf.PSnsNMF, Piecewise Smoothess  "nonsmooth" NMF Described by Jia and 
+                     Qian, 2009 and Pascual-Montano, A. et al., 2006 
 """
 import numpy as N
 import numpy.matlib
 import scipy.ndimage as scimg
 from datetime import datetime
-import matplotlib.pyplot as plt
 import nmf_eval
 
 def NMF(data, W, H, K = 5, maxiter = 500, debug = False):
@@ -116,14 +123,14 @@ def NMF(data, W, H, K = 5, maxiter = 500, debug = False):
     return ret_dict
 ##---------------------------------------------------------------------------##
 
-def PSNMF(data, W, H, resp_func, info, delta = 100., alpha = 0.5, beta = 0.1, yw = 0.01, ys = 0.5,
+def INMF(data, W, H, resp_func, info, delta = 100., alpha = 0.5, beta = 0.1, yw = 0.01, ys = 0.5,
         windowW = [11,11,11,11,11], windowH = [5,5,5,5,11], K = 5,
         maxiter = 500, debug = False):
     '''
-    Piecewise Smoothness Non-negative Matrix Factorization Routine
-    Created By: Logan Wright
+    Informed Non-negative Matrix Factorization Routine
     Created On: Oct 20, 2016
-    Last Modified: Feb, 20, 2017
+    Last Modified: June, 16, 2017
+    Author: Logan Wright, logan.wright@colorado.edu
             
     Description:
         An NMF routine using a multiplicative update rule for H and W. This 
@@ -132,7 +139,8 @@ def PSNMF(data, W, H, resp_func, info, delta = 100., alpha = 0.5, beta = 0.1, yw
                 endmember spectra (W)
             - An Abundance-Sum-to-One (ASO) constraints forces abundances to 1,
                 allowing a fractional, or sum-of-parts interpretation
-        Routine is based on Jia and Qian, 2009 Section IIIB
+        Routine is based on the piecewise smoothness NMF from Jia and Qian, 
+        2009 Section IIIB
     Reference:
         Jia, S., and Y. Qian (2009), Constrained Nonnegative Matrix 
         Factorization for Hyperspectral Unmixing, Geosci. Remote Sensing, 

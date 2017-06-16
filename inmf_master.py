@@ -5,7 +5,7 @@ inmf_master.py - master script needed to run the INMF code
 
 Version 2.1
 Created on: Oct, 13, 2016
-Last Modified: June, 14, 2017
+Last Modified: June, 16, 2017
 Author: Logan Wright, logan.wright@colorado.edu
 
 Description:
@@ -32,9 +32,9 @@ Description:
 # Import Modules
 import os
 import sys
+import nmf
 import math
 import numpy as N
-import nmf_fixedatmo
 import scipy.io as sio
 import matplotlib as mpl
 mpl.use('Agg')
@@ -572,21 +572,21 @@ if inputs['perturb'] is not None:
     pool = mp.Pool(processes = params['procnum'])
     count = 0
     for scl in perturb:
-        info = {'fname':inputs['name'] + str(count) + '_psnmf_fixedatmo','titles':titles,'dims':(I, J, L, K)}
+        info = {'fname':inputs['name'] + str(count) + '_inmf','titles':titles,'dims':(I, J, L, K)}
         print(count, info['fname'])
-        pool.apply_async(nmf_fixedatmo.PSNMF, (hypercube.data_cube,W1*scl,H1,resp_func,info), kwargs, callback = nmf_output)
+        pool.apply_async(nmf.INMF, (hypercube.data_cube,W1*scl,H1,resp_func,info), kwargs, callback = nmf_output)
         count +=1
     pool.close()
     pool.join()
 
 else:
-    # Run PSNMF   
-    info = {'fname':inputs['name'] + '_psnmf_fixedatmo','titles':titles,'dims':(I, J, L, K)}
-    psnmf_fixedatmo_out = nmf_fixedatmo.PSNMF(hypercube.data_cube, W1, H1, resp_func, info, K = K, windowW = win_W, 
+    # Run INMF   
+    info = {'fname':inputs['name'] + '_inmf','titles':titles,'dims':(I, J, L, K)}
+    inmf_out = nmf.INMF(hypercube.data_cube, W1, H1, resp_func, info, K = K, windowW = win_W, 
                       windowH = win_H, maxiter = inputs['max_i'])
-    psnmf_fixedatmo_out['wavelengths'] = wvl
-    psnmf_fixedatmo_out = nmf_output(psnmf_fixedatmo_out)
+    inmf_out['wavelengths'] = wvl
+    inmf_out = nmf_output(inmf_out)
     # Plot Results
     if inputs['plot_flag'] is True:
-        plot_nmf(psnmf_fixedatmo_out, W1, inputs['name'] + '_psnmf_fixedatmo', titles, K)
-    print('Completed PSNMF')
+        plot_nmf(inmf_out, W1, inputs['name'] + '_inmf', titles, K)
+    print('Completed INMF')
