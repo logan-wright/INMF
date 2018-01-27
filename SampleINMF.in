@@ -1,41 +1,65 @@
 ### Sample INMF Input Files
-# Include the name of the scene, this will be used to name the output plots and results
-name = Hawaii_baseline
+# Include the name of the scene, this will be used to name the output plots and
+# results
+
+name = TestHawaiianImage
 
 # Include the filename of scene
 file = H2013292233238.L1B_ISS
 
-# Name of Run 
-name = TestHawaiianImage
-
-# Name the types of endmember you want to use to initialize the INMF, should be a comma separated list
+# Name the types of endmember you want to use to initialize the INMF, should be
+# a comma separated list
 members = Vegetation,Water,Soil,Cloud,Atmosphere
+SZA = 36.79
+SunElliptic = 1.00787
 
 # Ending Conditions
-max_i = 500 	
-# max_i: Maximum number of iterations to use (If max_i is less than 10 the default value of 500 iterations will be used)
-epsilon = 0	# If cost function change is less than this value iteration stops (value <= 0 will use default value)
+max_i = 500
+# max_i: Maximum number of iterations to use (If max_i is less than 10 the
+#        default value of 500 iterations will be used)
+epsilon = 0
+# epsilon: If cost function change is less than this value iteration stops
+#          (value <= 0 will use default value)
 
 # Constraints - Set Yes or No
-ASO = No	
+ASO = No
 smooth_spectral = Yes
 smooth_spatial = Yes
 
-# The following: spectra_win, spectra_strength, spectra_gamma, spatial_win, spatial_strength, spatial_gammma 
+# The following: spectral_win, spectral_strength, spectral_gamma, spatial_win,
+#                spatial_strength, spatial_gammma
+#
 # are only need if Smooth_Spectral or Smooth_Spatial are set to YES.
 #
-# spectra_win and spatial_win - 
-# Set the window over which smoothing is applied. Value must be an integer or a vector of N integers (where N is the number of endmembers). Values must be odd and >= 1. 
+# spectral_win and spatial_win:
+#    Set the window over which smoothing is applied. Value must be an integer or a
+#    vector of N integers (where N is the number of endmembers). Values must be odd and >= 1.
 
-spectral_win = [11,11,11,11,11] 
+spectral_win = [11,11,11,11,11]
 spatial_win = [5,5,5,5,11]
 
-# spectrl
+# spectral_strength and spatial_strength:
+#    Are the alpha and beta values in the INMF cost function, scaling the
+#    weight of the smoothing in the total cost function. If no value is given
+#    default values are used.
 
-# Optional Inputs, These inputs are optional but can be used to subset the scene, improve the initial guess or set the INMF parameters
-wvl_ind = 9,96
+spectral_strength = 0.5   # Default = 0.5
+spatial_strength = 0.1    # Default = 0.1
 
+# spectral_gamma and spatial_gamma:
+#    Are the gamma_w (y_w) and gamma_h (y_h) values in the INMF cost function.
+#    These values determine how quickly the smoothing function falls off from
+#    the center of the window. If no value is given default values are used.
 
+spectral_strength = 0.01   # Default = 0.01
+spatial_strength = 0.5  # Default = 0.5
 
-SZA = 36.79
-SunElliptic = 1.00787
+# Optional Inputs,
+#    roi - Can be used to subset the scene. Must be a set of 4 indices
+#          representing a square region from the image
+#    wvl_rng - Can be used to select a subset of the wavelength range, first
+#              value is a minimum wavelengh and the second is the maximum
+#              (values are in nanometers)
+
+roi = 100,200,101,201
+wvl_rng = 400,900
