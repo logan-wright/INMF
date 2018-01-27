@@ -49,9 +49,8 @@ def load_input_file(filepath):
     """
     inmf_master.load_input_file - parses INMF input file
 
-    Version 1.0
     Created on: Oct, 13, 2016
-    Last Modified: June, 14, 2017
+    Last Modified: Jan 27, 14, 2018
     Author: Logan Wright, logan.wright@colorado.edu
 
      - Reads in an INMF input file like "SampleINMF.in"
