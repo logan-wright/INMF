@@ -1,3 +1,5 @@
+import numpy as N
+
 def gauss_conv(in_spec,in_wvl,center,fwhm):
     """
     inmf_master.gauss_conv() - load data contained in a MODTRAN .acd output file

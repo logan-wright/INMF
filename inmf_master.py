@@ -40,7 +40,7 @@ import math
 import numpy as N
 import scipy.io as sio
 import matplotlib as mpl
-mpl.use('Agg')
+#mpl.use('Agg')
 import multiprocessing as mp
 import matplotlib.pyplot as plt
 
@@ -79,7 +79,7 @@ wvl_rng = inputs['wvl_rng']
 titles = inputs['members']
 name = inputs['name']
 file = inputs['file']
-
+ID = file.split('.')[0]
 # Load HICO Scene
 hypercube = load_hico(params['path'] + file, fill_saturated = True)
 
@@ -110,14 +110,13 @@ I,J,L = hypercube.data_cube.shape
 K = len(titles)
 
 # Generate Library Radiance Spectra
-if os.path.isfile(file + '_HICO_REFL.mat') == False:
-    paths = [params['modpath'],params['irradpath'],params['hicoreflpath']]
-    print(paths)
-    calc_radiance(paths,inputs['SZA'],inputs['SunElliptic'],resp_func,plot_flag = 1)
+if os.path.isfile(ID + '_HICO_REFL.mat') == False:
+    paths = [params['modpath'] + ID,params['irradpath'],params['hicoreflpath']]
+    calc_radiance(paths,inputs['SZA'],inputs['SunElliptic'],resp_func,hypercube.resp_func,plot_flag = 1)
 
 # Load Previously Generated HICO Endmembers
-refl_endmembers = sio.loadmat(file + '_HICO_REFL.mat')
-glintwater = sio.loadmat('WaterGlint_Initial.mat')
+refl_endmembers = sio.loadmat(params['modpath'] + ID + '_HICO_REFL.mat')
+glintwater = sio.loadmat('/Users/wrightad/Dropbox/LASP/NMF/py_pro/WaterGlint_Initial.mat')
 
 #refl_endmembers['Water'] = glintwater['Water_Refl']
 W1 = N.empty((L,K))

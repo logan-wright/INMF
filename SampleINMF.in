@@ -62,4 +62,6 @@ spatial_strength = 0.5  # Default = 0.5
 #              (values are in nanometers)
 
 roi = 100,200,101,201
-wvl_rng = 400,900
+wvl_rng = 9,96 
+
+

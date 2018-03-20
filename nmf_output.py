@@ -1,3 +1,8 @@
+import numpy as N
+import scipy.io as sio
+from datetime import datetime
+import matplotlib.pyplot as plt
+
 def plot_nmf(output, W1, name, titles, K, cmaps = dict([('Asphalt','Greys'),
                                                         ('Concrete', 'Greys'),
                                                         ('Snow','Greys'),
