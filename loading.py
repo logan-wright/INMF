@@ -32,49 +32,54 @@ def load_input_file(filepath):
             if len(val) > 1:    # Processes if there is more than one value,
                 for n in range(len(val)):
                     val[n] = str(val[n].strip(' \n\t'))
+                try
             else:
                 val = val[0].strip(' \n\t')
+                
+            
             inputs[key] = val    # Save parsed values in a dictionary
     f.close()
-    # Check for required inputs and format
-    if filepath == 'PARAMS.txt':
-        inputs['max_i'] = int(inputs['max_i'])
-    else:
-        # Converts wvl_ind into integers, if no value is given uses the full range
-        try:
-            inputs['wvl_rng'] = N.array(inputs['wvl_rng'], dtype = int)
-        except ValueError:
-            inputs['wvl_rng'] = N.array([0,128], dtype = int)
-        # Converts SZA into integer, if no value is given, requests an input from the user
-        try:
-            inputs['SZA'] = float(inputs['SZA'])
-        except NameError:
-            inputs['SZA'] = input('No Solar Zenith Angle Provided! Enter the SZA now:')
-
-        # Converts the Sun Ellipticity correction into a float, if no value is given assumes 1
-        try:
-            inputs['SunElliptic'] = float(inputs['SunElliptic'])
-        except NameError:
-            inputs['SunElliptic'] = 1
-
-        # Converts the allowed maximum number of iterations an integer, if none is present, sets the value to 500
-        try:
-            inputs['max_i'] = int(inputs['max_i'])
-        except NameError:
-            inputs['max_i'] = 500
-        # Sets the 'perturb" keyword to None, if not set
-        try:
-            inputs['perturb']
-        except KeyError:
-            inputs['perturb'] = None
-        # Sets other required inputs if they are not given in the inout file
-        if 'name' not in inputs.keys():
-            print('ERROR: No file name given')
-            inputs['name'] = input('Input filename now:')
-        if 'plot_flag' not in inputs.keys():
-            inputs['plot_flag'] = True
-        if 'rad_flag' not in inputs.keys():
-            inputs['rad_flag'] = True
+    
+    
+#    # Check for required inputs and format
+#    if filepath == 'PARAMS.txt':
+#        inputs['max_i'] = int(inputs['max_i'])
+#    else:
+#        # Converts wvl_ind into integers, if no value is given uses the full range
+#        try:
+#            inputs['wvl_rng'] = N.array(inputs['wvl_rng'], dtype = int)
+#        except ValueError:
+#            inputs['wvl_rng'] = N.array([0,128], dtype = int)
+#        # Converts SZA into integer, if no value is given, requests an input from the user
+#        try:
+#            inputs['SZA'] = float(inputs['SZA'])
+#        except NameError:
+#            inputs['SZA'] = input('No Solar Zenith Angle Provided! Enter the SZA now:')
+#
+#        # Converts the Sun Ellipticity correction into a float, if no value is given assumes 1
+#        try:
+#            inputs['SunElliptic'] = float(inputs['SunElliptic'])
+#        except NameError:
+#            inputs['SunElliptic'] = 1
+#
+#        # Converts the allowed maximum number of iterations an integer, if none is present, sets the value to 500
+#        try:
+#            inputs['max_i'] = int(inputs['max_i'])
+#        except NameError:
+#            inputs['max_i'] = 500
+#        # Sets the 'perturb" keyword to None, if not set
+#        try:
+#            inputs['perturb']
+#        except KeyError:
+#            inputs['perturb'] = None
+#        # Sets other required inputs if they are not given in the inout file
+#        if 'name' not in inputs.keys():
+#            print('ERROR: No file name given')
+#            inputs['name'] = input('Input filename now:')
+#        if 'plot_flag' not in inputs.keys():
+#            inputs['plot_flag'] = True
+#        if 'rad_flag' not in inputs.keys():
+#            inputs['rad_flag'] = True
 
     return inputs
 

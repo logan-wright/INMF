@@ -3,12 +3,20 @@
 """
 inmf_master.py - master script needed to run the INMF code
 
-Version 2.2
-Created on: Oct, 13, 2016
-Last Modified: Jan, 27 2018
+Version 2.3
+Created on: Oct 13, 2016
+Last Modified: Apr 19, 2018
 Author: Logan Wright, logan.wright@colorado.edu
 
 Description:
+ Version 2.3 Notes:
+    - Added Normalization Options (See readme for descriptions)
+        - None (default)
+        - Top of Atmosphere Reflectance
+        - Abundance-Sum-to-One or ASO
+        - Pixel Signal Weighted
+        - Wavelength Signal Weighted
+
  Version 2.2 Notes:
      -Improved the ability to use initialization files
 

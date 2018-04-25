@@ -9,15 +9,19 @@ file = H2013292233238.L1B_ISS
 
 # Name the types of endmember you want to use to initialize the INMF, should be
 # a comma separated list
-members = Vegetation,Water,Soil,Cloud,Atmosphere
+
+members = Vegetation, Water, Soil, Cloud, Atmosphere
 SZA = 36.79
 SunElliptic = 1.00787
 
 # Ending Conditions
 max_i = 500
+
 # max_i: Maximum number of iterations to use (If max_i is less than 10 the
 #        default value of 500 iterations will be used)
+
 epsilon = 0
+
 # epsilon: If cost function change is less than this value iteration stops
 #          (value <= 0 will use default value)
 
@@ -35,24 +39,30 @@ smooth_spatial = Yes
 #    Set the window over which smoothing is applied. Value must be an integer or a
 #    vector of N integers (where N is the number of endmembers). Values must be odd and >= 1.
 
-spectral_win = [11,11,11,11,11]
-spatial_win = [5,5,5,5,11]
+spectral_win = 11, 11, 11, 11, 11
+spatial_win = 5, 5, 5, 5, 11
 
 # spectral_strength and spatial_strength:
 #    Are the alpha and beta values in the INMF cost function, scaling the
 #    weight of the smoothing in the total cost function. If no value is given
 #    default values are used.
+# Default Values:
+#	spectral_strength = 0.5
+#	spatial_strength = 0.1
 
-spectral_strength = 0.5   # Default = 0.5
-spatial_strength = 0.1    # Default = 0.1
+spectral_strength = 0.5
+spatial_strength = 0.1
 
 # spectral_gamma and spatial_gamma:
 #    Are the gamma_w (y_w) and gamma_h (y_h) values in the INMF cost function.
 #    These values determine how quickly the smoothing function falls off from
 #    the center of the window. If no value is given default values are used.
+#    Default Values:
+#	spectral_gammma = 0.01
+#	spatial_gamma = 0.5
 
-spectral_strength = 0.01   # Default = 0.01
-spatial_strength = 0.5  # Default = 0.5
+spectral_gamma = 0.01   
+spatial_gamma = 0.5
 
 # Optional Inputs,
 #    roi - Can be used to subset the scene. Must be a set of 4 indices
