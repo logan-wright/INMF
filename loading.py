@@ -32,15 +32,13 @@ def load_input_file(filepath):
             if len(val) > 1:    # Processes if there is more than one value,
                 for n in range(len(val)):
                     val[n] = str(val[n].strip(' \n\t'))
-                try
             else:
                 val = val[0].strip(' \n\t')
-                
-            
+
             inputs[key] = val    # Save parsed values in a dictionary
     f.close()
-    
-    
+
+
 #    # Check for required inputs and format
 #    if filepath == 'PARAMS.txt':
 #        inputs['max_i'] = int(inputs['max_i'])
