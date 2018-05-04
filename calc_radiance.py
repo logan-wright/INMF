@@ -6,6 +6,28 @@ from loading import load_acd
 import scipy.io as sio
 import matplotlib.pyplot as plt
 
+def gen_endmembers():
+    # Generate Library Radiance Spectra
+    if os.path.isfile(ID + '_HICO_REFL.mat') == False:
+        paths = [params['modpath'] + ID,params['irradpath'],params['hicoreflpath']]
+        calc_radiance(paths,inputs['SZA'],inputs['SunElliptic'],resp_func,hypercube.resp_func,plot_flag = 1)
+
+    # Load Previously Generated HICO Endmembers
+    refl_endmembers = sio.loadmat(params['modpath'] + ID + '_HICO_REFL.mat')
+    glintwater = sio.loadmat('/Users/wrightad/Dropbox/LASP/NMF/py_pro/WaterGlint_Initial.mat')
+
+    #refl_endmembers['Water'] = glintwater['Water_Refl']
+    W1 = np.empty((L,K))
+
+    for j in range(len(inputs['members'])):
+        W1[:,j] = np.squeeze(refl_endmembers[inputs['members'][j]])
+
+    cmaps = dict([('Asphalt','Greys'), ('Concrete', 'Greys'), ('Snow','Greys'),
+                  ('Soil', 'Oranges'), ('Vegetation','Greens'), ('Water', 'Blues'),
+                  ('Cloud','RdPu'), ('Atmosphere', 'Purples')])
+
+    H1 = np.ones((K,I*J)) / K;
+
 def calc_radiance(paths,SZA,SunElliptic,resp_func,HICO_resp,plot_flag = True):
     '''
 

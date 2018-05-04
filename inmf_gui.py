@@ -27,7 +27,7 @@ def run(root,endmember_entries):
 
     input_params = {'name':outfile.get(),
                     'file':filename.get(),
-                    'endmember_files':endfile.get(),
+                    'endmember_file':endfile.get(),
                     'members': endmember_names,
                     # 'SZA' : 36.79,
                     # 'SunElliptic' : 1.00787,

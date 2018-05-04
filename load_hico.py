@@ -76,7 +76,8 @@ from datetime import datetime
 
 # Define the "datacube" object
 class datacube(object):
-    def __init__(self,data_cube,resp_func,nav,flags,rgb):
+    def __init__(self,filepath,data_cube,resp_func,nav,flags,rgb):
+        self.name = filepath.split('/')[-1]
         self.data_cube = data_cube
         self.resp_func = resp_func
         self.nav = nav

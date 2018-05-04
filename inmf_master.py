@@ -1,11 +1,34 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-inmf_master.py - master script needed to run the INMF code
+inmf_master.py - master script to run the INMF code
+
+ - Reads in a hyperspectral data scene, (Written for HICO data)
+ - Reads INMF settings and parameters from input (*.in) and PARAMS.txt files
+ - Performs INMF on the scene with the specified settings
+ - Saves and plots results
+
+ X Generates intial guess radiance spectra using MODTRAN inputs (Version 2.3
+   Removed this functionality to the standalone function "calc_radiance.py")
+
+ Inputs:
+        inputfile = name of the inputfile to be used, as a string
+        EXAMPLE: python nmf_master.py 'SampleINMF.in'
+    OR:
+        Calling without an input file will prompt the user to create an input
+        files with a graphical interface.
+        EXAMPLE: python nmf_master.py
+    OR:
+        Alternatively, the GUI may be access directly by running inmf_gui.py
+        EXAMPLE: inmf_gui.py
+
+ Outputs:
+       INMF results file
+       Automatic plots
 
 Version 2.3
 Created on: Oct 13, 2016
-Last Modified: Apr 19, 2018
+Last Modified: May 4, 2018
 Author: Logan Wright, logan.wright@colorado.edu
 
 Description:
@@ -16,6 +39,8 @@ Description:
         - Abundance-Sum-to-One or ASO
         - Pixel Signal Weighted
         - Wavelength Signal Weighted
+    - Re-organized code to be Object-Oriented
+    - Added GUI
 
  Version 2.2 Notes:
      -Improved the ability to use initialization files
@@ -28,39 +53,16 @@ Description:
  Version 2.0 Notes:
      Seperated master script into subfunctions
 
- - Reads in a hyperspectral data scene,
- - Generates intial guess radiance spectra using MODTRAN inputs
- - Calls the INMF routine
- - Saves and plots results
-
- Inputs:
-       inputfile = name of the inputfile to be used, as a string
-        EXAMPLE: python3 nmf_master 'SampleINMF.in'
- Outputs:
-       INMF results file
-       Automatic plots
-"""
-# inputs = load_input_file
-
-# # Define the NMF object
-# class NMF_obj(object):
-#     def __init__(self,inital,result,meta):
-#         self.data_cube = data_cube
-#         self.resp_func = resp_func
-#         self.nav = nav
-#         self.flags = flags
-#         self.rgb = rgb
-'''
-
 -------------------------------------------------------------------------------
 NMF Master Script
 
-'''
+"""
+# Import system interface modules
 import os
 import sys
 import subprocess
 
-# Check if arguments are passed to the inmf_master function if not, open the GUI
+# Check if arguments are passed to inmf_master. If not, open the GUI
 try:
     sys.argv[1]
 except:
@@ -68,12 +70,12 @@ except:
 
 # Import Modules
 import nmf
+import copy
 import math
 import numpy as np
 import scipy.io as sio
 import matplotlib as mpl
-#mpl.use('Agg')
-import multiprocessing as mp
+# import multiprocessing as mp
 import matplotlib.pyplot as plt
 
 # Import individual functions
@@ -84,93 +86,118 @@ from calc_radiance import calc_radiance
 from loading import load_input_file
 from super_resample import super_resample
 
+# Define the NMF object
+class NMF_obj(object):
+    def __init__(self,hico_cube,inputs):
+        self.scene = copy.copy(hico_cube)
+        self.inputs = inputs
+        self.name = inputs['name']
+        self.results = ['No Results Computed']
+
+        self.subset(inputs['subset'])
+
+        # Load and apply HICO Vicarious Calibration Gains
+        gains = np.genfromtxt(params['caldat'])[:,1]
+        self.scene.data_cube = hico_cube.data_cube * gains[inputs['wvl_rng'][0]:inputs['wvl_rng'][1]]
+
+        # Get dimensions of image to be decomposed
+        #   I,J are the along and across-track spatial dimensions,
+        #   L is the spectral dimension
+        #   K is the number of endmembers to be used in the decomposition
+        I,J,L = self.data_cube.shape
+        K = len(inputs['members'])
+        self.scenesize = [I,J,L,K]
+
+    def __str__(self):
+        return 'NMF Object, {0} operating on HICO scene: {1} \n \
+                {2}'.format(self.name,self.scene.name,self.results)
+
+    def subset(self,subset):
+        # Slice datacube
+        self.scene.resp_func['wvl'] = self.scene.resp_func['wvl'][inputs['wvl_rng'][0]:inputs['wvl_rng'][1]]
+        self.scene.resp_func['fwhm'] = self.scene.resp_func['fwhm'][inputs['wvl_rng'][0]:inputs['wvl_rng'][1]]
+
+        try:
+            subset = np.array(subset,dtype = 'int')
+            print(subset)
+            # Remove side of slit, bad wavelengths, and subset spatial domain
+            self.scene.data_cube = self.scene.data_cube[subset[0]:subset[1],subset[2]:subset[3],inputs['wvl_rng'][0]:inputs['wvl_rng'][1]]
+        except KeyError:
+            # For just removing side of HICO slit and bad wavelengths use:
+            self.scene.data_cube = self.scene.data_cube[:,9:,inputs['wvl_rng'][0]:inputs['wvl_rng'][1]]
+
+    def INMF(self):
+        # Do stuff
+        results = nmf.INMF(self)
+        self.results[0] = 'Results Computed!'
+        self.results[1] = results
+
+    def plot():
+
+        nmf_output.plot_nmf(self)
+
+    def output():
+
+        nmf_output.nmf_output(self)
+
+
 # Read Parameter and Input Files
 params = load_input_file('PARAMS.txt')
 inputs = load_input_file(sys.argv[1])
 
-# wvl_rng = inputs['wvl_rng']
-# titles = inputs['members']
-# name = inputs['inputs['name']']
-# file = inputs['file']
-ID = inputs['file'].split('.')[0]
+# ID = inputs['file'].split('.')[0]
 
 # Load HICO Scene
 hypercube = load_hico(params['path'] + inputs['file'], fill_saturated = True)
 
-# Slice datacube
-#   This step remove bad wavelengths
-# wvl = hypercube.resp_func['wvl']
-# wvl = wvl[inputs['wvl_rng'][0]:inputs['wvl_rng'][1]]
-# fwhm = hypercube.resp_func['fwhm']
-# fwhm = fwhm[inputs['wvl_rng'][0]:inputs['wvl_rng'][1]]
-# resp_func = {'wvl':wvl,'fwhm':fwhm}
-
-wvl = hypercube.resp_func['wvl'][inputs['wvl_rng'][0]:inputs['wvl_rng'][1]]
-fwhm = hypercube.resp_func['fwhm'][inputs['wvl_rng'][0]:inputs['wvl_rng'][1]]
-resp_func = {'wvl':wvl,'fwhm':fwhm}
-
-try:
-    subset = np.array(inputs['subset'],dtype = 'int')
-    print(subset)
-    # Remove side of slit, bad wavelengths, and subset spatial domain
-    hypercube.data_cube = hypercube.data_cube[subset[0]:subset[1],subset[2]:subset[3],inputs['wvl_rng'][0]:inputs['wvl_rng'][1]]
-except KeyError:
-    # For just removing side of HICO slit and bad wavelengths use:
-    hypercube.data_cube = hypercube.data_cube[:,9:,inputs['wvl_rng'][0]:inputs['wvl_rng'][1]]
-
-# Load and apply HICO Vicarious Calibration Gains
-gains = np.genfromtxt(params['caldat'])[:,1]
-hypercube.data_cube = hypercube.data_cube * gains[inputs['wvl_rng'][0]:inputs['wvl_rng'][1]]
-
-I,J,L = hypercube.data_cube.shape
-K = len(inputs['members'])
+# Create NMF object
+INMF_processing = NMF_obj(hypercube,inputs)
 
 # Deal with the endmembers
+# Load in Previously Generated Endmembers
+INMF_processing.endmembers = sio.loadmat(params['endmember_file'])
  #### PARSE MEMBERS HERE
-
-# Generate Library Radiance Spectra
-if os.path.isfile(ID + '_HICO_REFL.mat') == False:
-    paths = [params['modpath'] + ID,params['irradpath'],params['hicoreflpath']]
-    calc_radiance(paths,inputs['SZA'],inputs['SunElliptic'],resp_func,hypercube.resp_func,plot_flag = 1)
-
-# Load Previously Generated HICO Endmembers
-refl_endmembers = sio.loadmat(params['modpath'] + ID + '_HICO_REFL.mat')
-glintwater = sio.loadmat('/Users/wrightad/Dropbox/LASP/NMF/py_pro/WaterGlint_Initial.mat')
-
-#refl_endmembers['Water'] = glintwater['Water_Refl']
-W1 = np.empty((L,K))
-
-for j in range(len(inputs['members'])):
-    W1[:,j] = np.squeeze(refl_endmembers[inputs['members'][j]])
-
-cmaps = dict([('Asphalt','Greys'), ('Concrete', 'Greys'), ('Snow','Greys'),
-              ('Soil', 'Oranges'), ('Vegetation','Greens'), ('Water', 'Blues'),
-              ('Cloud','RdPu'), ('Atmosphere', 'Purples')])
-
-H1 = np.ones((K,I*J)) / K;
-
-# Set NMF Parameters
-win_W = np.ones(K, dtype = 'int') * 11
-win_H = np.ones(K-1, dtype = 'int') * 5
-win_H = np.append(win_H, 11)
 
 # Normalization
 if inputs['norm'] == 'none':
+    solar_irrad = 5
 
+    # hico_refl = hypercube.data_cube/
 elif inputs['norm'] == 'aso':
     print('Applying Abundance-Sum-to-One Normalization')
+    delta_vec = delta*inputs['aso_vec']
+
+
 elif inputs['norm'] == 'refl':
     print('Applying Top-of-Atmosphere Reflectance Normalization')
+
+
 elif inputs['norm'] == 'pixel':
     print('Applying Pixel-by-Pixel Spatial Normalization')
+
+
 elif inputs['norm'] == 'spectral':
     print('Applying Spectral Normalization')
+
 
 else:
     print('No Normalization Specified')
 
-
 # Run NMF
+
+INMF_processing.INMF()
+
+# info = {'fname':inputs['name'] + '_inmf','titles':inputs['members'],'dims':(I, J, L, K)}
+# inmf_out = nmf.INMF(hypercube.data_cube, W1, H1, resp_func, info, K = K, windowW = inputs['spectral_win'],
+#                   windowH = inputs['spatial_win'], maxiter = inputs['max_i'])
+# inmf_out['wavelengths'] = wvl
+# inmf_out = nmf_output.nmf_output(inmf_out)
+# # Plot Results
+# if inputs['plot_flag'] is True:
+#     nmf_output.plot_nmf(inmf_out, W1, inputs['name'] + '_inmf', inputs['members'], K)
+print('Completed INMF')
+
+'''
 if inputs['perturb'] is not None:
     # Perturbing Initial Conditions
     import itertools
@@ -201,15 +228,4 @@ if inputs['perturb'] is not None:
         count +=1
     pool.close()
     pool.join()
-
-else:
-    # Run INMF
-    info = {'fname':inputs['name'] + '_inmf','titles':inputs['members'],'dims':(I, J, L, K)}
-    inmf_out = nmf.INMF(hypercube.data_cube, W1, H1, resp_func, info, K = K, windowW = win_W,
-                      windowH = win_H, maxiter = inputs['max_i'])
-    inmf_out['wavelengths'] = wvl
-    inmf_out = nmf_output.nmf_output(inmf_out)
-    # Plot Results
-    if inputs['plot_flag'] is True:
-        nmf_output.plot_nmf(inmf_out, W1, inputs['name'] + '_inmf', inputs['members'], K)
-    print('Completed INMF')
+    '''
