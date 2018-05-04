@@ -25,6 +25,20 @@ epsilon = 0
 # epsilon: If cost function change is less than this value iteration stops
 #          (value <= 0 will use default value)
 
+# Normalization
+# none, (No Normalization):
+#		LOREM
+# aso, (Abundance-Sum-to-One) =  
+#		IPSUM
+# refl, (Reflectance) = 
+#		DOLORES
+# pixel, (Weight by Pixel) = 
+#		EPSO
+# spectral, (Weight by Spectra) = 
+#		FACTO
+
+norm = aso
+
 # Constraints - Set Yes or No
 ASO = No
 smooth_spectral = Yes
