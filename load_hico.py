@@ -192,7 +192,7 @@ def load_hico(filepath,fill_saturated = True):
     rgb = N.dstack((Rscl,Gscl,Bscl))
 
     # Return
-    ret_val = datacube(scaled_data,resp,nav,flags,rgb)
+    ret_val = datacube(filepath,scaled_data,resp,nav,flags,rgb)
     return ret_val
 
 

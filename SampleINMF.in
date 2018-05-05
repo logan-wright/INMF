@@ -2,10 +2,13 @@
 # Include the name of the scene, this will be used to name the output plots and
 # results
 
-name = TestHawaiianImage
+name = HICO_TestSceneSanFranBay
 
-# Include the filename of scene
-file = H2013292233238.L1B_ISS
+# Include the filepath and name of scene
+file = SampleData/H2014050221301.L1B_ISS
+
+# Path to the endmember data file (Currently needs to be a MATLAB save file [.mat])
+endmember_file = SampleData/H2014050221301_HICO_REFL.mat
 
 # Name the types of endmember you want to use to initialize the INMF, should be
 # a comma separated list

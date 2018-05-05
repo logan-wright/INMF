@@ -12,7 +12,7 @@ irradpath = /Users/wrightad/Documents/MODTRAN/DATA/SUN01med2irradwnNormt.dat
 hicoreflpath = /Users/wrightad/Dropbox/LASP/NMF/pro/ASTER_REFL_HICO.mat
 
 # Path to HICO Vicarious Calibration Data
-caldat = /Users/wrightad/Desktop/HICO_VicariousGains.dat
+caldat = HICO_VicariousGains.dat
 
 # Number of processors to use for multiprocessing
 procnum = 1

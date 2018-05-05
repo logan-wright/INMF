@@ -1,5 +1,19 @@
 import numpy as N
 
+def convert_to_number(item):
+    # Try to convert to a Number
+    try:
+        # Check if Integer
+        val = int(item)
+    except ValueError:
+        try:
+            # Check if Float
+            val = float(item)
+        except ValueError:
+            # If neither Int nor Float return original item 
+            val = item
+    return val
+
 def load_input_file(filepath):
     """
     inmf_master.load_input_file - parses INMF input file
@@ -31,9 +45,9 @@ def load_input_file(filepath):
             val =  strs[1].split(',')    # Split comma separated values
             if len(val) > 1:    # Processes if there is more than one value,
                 for n in range(len(val)):
-                    val[n] = str(val[n].strip(' \n\t'))
+                    val[n] = convert_to_number(str(val[n].strip(' \n\t')))
             else:
-                val = val[0].strip(' \n\t')
+                val = convert_to_number(val[0].strip(' \n\t'))
 
             inputs[key] = val    # Save parsed values in a dictionary
     f.close()

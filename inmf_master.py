@@ -86,51 +86,79 @@ from calc_radiance import calc_radiance
 from loading import load_input_file
 from super_resample import super_resample
 
+class NMF_result(object):
+    def __init__(self,W,H):
+        self.W = W
+        self.H = H
+        self.cost = []
+        self.residual = []
+
 # Define the NMF object
 class NMF_obj(object):
     def __init__(self,hico_cube,inputs):
+        self.name = inputs['name']
         self.scene = copy.copy(hico_cube)
         self.inputs = inputs
-        self.name = inputs['name']
-        self.results = ['No Results Computed']
-
-        self.subset(inputs['subset'])
-
-        # Load and apply HICO Vicarious Calibration Gains
-        gains = np.genfromtxt(params['caldat'])[:,1]
-        self.scene.data_cube = hico_cube.data_cube * gains[inputs['wvl_rng'][0]:inputs['wvl_rng'][1]]
+        self.endmembers = []
+        self.status = ['No Results Computed']
+        self.results = []
 
         # Get dimensions of image to be decomposed
         #   I,J are the along and across-track spatial dimensions,
         #   L is the spectral dimension
         #   K is the number of endmembers to be used in the decomposition
-        I,J,L = self.data_cube.shape
+        I,J,L = self.scene.data_cube.shape
         K = len(inputs['members'])
-        self.scenesize = [I,J,L,K]
+        self.scenesize = [I,J,K,L]
+
+        # Subset the scene given the inputs for spatial and wavelength ranges
+        try:
+            # Selects a user defined subset
+            subset = np.array(inputs['subset'],dtype = 'int')
+        except KeyError:
+            # If no subset is specified only remove side of slit, and bad wavelengths
+            subset = np.array([0,I+1,9,J+1])
+
+        self.subset(subset)
 
     def __str__(self):
         return 'NMF Object, {0} operating on HICO scene: {1} \n \
                 {2}'.format(self.name,self.scene.name,self.results)
 
     def subset(self,subset):
-        # Slice datacube
-        self.scene.resp_func['wvl'] = self.scene.resp_func['wvl'][inputs['wvl_rng'][0]:inputs['wvl_rng'][1]]
-        self.scene.resp_func['fwhm'] = self.scene.resp_func['fwhm'][inputs['wvl_rng'][0]:inputs['wvl_rng'][1]]
+        # Slice datacube to a user defined subset
+        self.scene.resp_func['wvl'] = self.scene.resp_func['wvl'][self.inputs['wvl_rng'][0]:self.inputs['wvl_rng'][1]]
+        self.scene.resp_func['fwhm'] = self.scene.resp_func['fwhm'][self.inputs['wvl_rng'][0]:self.inputs['wvl_rng'][1]]
+        self.scene.data_cube = self.scene.data_cube[subset[0]:subset[1],subset[2]:subset[3],self.inputs['wvl_rng'][0]:self.inputs['wvl_rng'][1]]
 
-        try:
-            subset = np.array(subset,dtype = 'int')
-            print(subset)
-            # Remove side of slit, bad wavelengths, and subset spatial domain
-            self.scene.data_cube = self.scene.data_cube[subset[0]:subset[1],subset[2]:subset[3],inputs['wvl_rng'][0]:inputs['wvl_rng'][1]]
-        except KeyError:
-            # For just removing side of HICO slit and bad wavelengths use:
-            self.scene.data_cube = self.scene.data_cube[:,9:,inputs['wvl_rng'][0]:inputs['wvl_rng'][1]]
+    def cal(self,cal_file):
+        # Applies a calibration file
+        gains = np.genfromtxt(cal_file)[:,1]
+        self.scene.data_cube = self.scene.data_cube * gains[self.inputs['wvl_rng'][0]:self.inputs['wvl_rng'][1]]
+
+    def initialize(self):
+        # Generates initial Endmember Spectra and Abundances
+        # Load Endmembers
+        possible_endmembers = sio.loadmat(self.inputs['endmember_file'])
+        titles = list()
+        spectra = list()
+
+        for endmember in inputs['members']:
+            spectra.append(possible_endmembers[endmember])
+            titles.append(endmember)
+
+        self.endmembers = {'spectra':np.vstack(spectra),'titles':titles}
+        W_init = self.endmembers['spectra']
+
+        [I,J,K,L] = self.scenesize
+        H_init = np.ones((K,I*J)) / K
+        self.results = NMF_result(W_init, H_init)
+
 
     def INMF(self):
         # Do stuff
-        results = nmf.INMF(self)
-        self.results[0] = 'Results Computed!'
-        self.results[1] = results
+        nmf.INMF(self)
+        self.status = 'Results Computed!'
 
     def plot():
 
@@ -148,14 +176,17 @@ inputs = load_input_file(sys.argv[1])
 # ID = inputs['file'].split('.')[0]
 
 # Load HICO Scene
-hypercube = load_hico(params['path'] + inputs['file'], fill_saturated = True)
+hypercube = load_hico(os.path.abspath(inputs['file']), fill_saturated = True)
 
 # Create NMF object
 INMF_processing = NMF_obj(hypercube,inputs)
 
+# Load and apply HICO Vicarious Calibration Gains
+INMF_processing.cal(os.path.abspath(params['caldat']))
+
 # Deal with the endmembers
 # Load in Previously Generated Endmembers
-INMF_processing.endmembers = sio.loadmat(params['endmember_file'])
+INMF_processing.initialize()
  #### PARSE MEMBERS HERE
 
 # Normalization
@@ -165,7 +196,7 @@ if inputs['norm'] == 'none':
     # hico_refl = hypercube.data_cube/
 elif inputs['norm'] == 'aso':
     print('Applying Abundance-Sum-to-One Normalization')
-    delta_vec = delta*inputs['aso_vec']
+    # delta_vec = delta*inputs['aso_vec']
 
 
 elif inputs['norm'] == 'refl':
@@ -185,7 +216,9 @@ else:
 
 # Run NMF
 
-INMF_processing.INMF()
+print(INMF_processing)
+
+# INMF_processing.INMF()
 
 # info = {'fname':inputs['name'] + '_inmf','titles':inputs['members'],'dims':(I, J, L, K)}
 # inmf_out = nmf.INMF(hypercube.data_cube, W1, H1, resp_func, info, K = K, windowW = inputs['spectral_win'],
