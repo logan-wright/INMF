@@ -92,6 +92,7 @@ class NMF_result(object):
         self.H = H
         self.cost = []
         self.residual = []
+        self.iter = []
 
 # Define the NMF object
 class NMF_obj(object):
@@ -109,7 +110,6 @@ class NMF_obj(object):
         #   K is the number of endmembers to be used in the decomposition
         I,J,L = self.scene.data_cube.shape
         K = len(inputs['members'])
-        self.scenesize = [I,J,K,L]
 
         # Subset the scene given the inputs for spatial and wavelength ranges
         try:
@@ -118,8 +118,11 @@ class NMF_obj(object):
         except KeyError:
             # If no subset is specified only remove side of slit, and bad wavelengths
             subset = np.array([0,I+1,9,J+1])
-
         self.subset(subset)
+
+        # Recalculate Dimensions after subsetting
+        I,J,L = self.scene.data_cube.shape
+        self.scenesize = [I,J,K,L]
 
     def __str__(self):
         return 'NMF Object, {0} operating on HICO scene: {1} \n \
@@ -147,22 +150,39 @@ class NMF_obj(object):
             spectra.append(possible_endmembers[endmember])
             titles.append(endmember)
 
-        self.endmembers = {'spectra':np.vstack(spectra),'titles':titles}
+        self.endmembers = {'spectra':np.vstack(np.transpose(spectra)),'titles':titles}
         W_init = self.endmembers['spectra']
 
         [I,J,K,L] = self.scenesize
         H_init = np.ones((K,I*J)) / K
         self.results = NMF_result(W_init, H_init)
 
+    def NMF(self):
+        nmf.NMF(self)
 
     def INMF(self):
         # Do stuff
         nmf.INMF(self)
+
+        # Calculate Residual
+        recon = np.reshape(np.dot(self.results.W,self.results.H), (self.scenesize[0],self.scenesize[1],self.scenesize[3]))
+        resid = np.sum(np.sqrt((self.scene.data_cube - recon) ** 2), 2)
+
+        # Reshape Spatial Abundances
+        abundances = np.reshape(np.transpose(self.results.H), (self.scenesize[0],self.scenesize[1],self.scenesize[2]))
+
         self.status = 'Results Computed!'
 
-    def plot():
+    def plot(self):
+        plt.figure()
+        plt.plot(self.results.W)
+        plt.plot(self.endmembers['spectra'],'--')
+        plt.savefig('endmembers.png')
 
-        nmf_output.plot_nmf(self)
+        plt.figure()
+        plt.plot(self.results.cost)
+        plt.savefig('cost.png')
+        # nmf_output.plot_nmf(self)
 
     def output():
 
@@ -218,7 +238,8 @@ else:
 
 print(INMF_processing)
 
-# INMF_processing.INMF()
+INMF_processing.INMF()
+INMF_processing.plot()
 
 # info = {'fname':inputs['name'] + '_inmf','titles':inputs['members'],'dims':(I, J, L, K)}
 # inmf_out = nmf.INMF(hypercube.data_cube, W1, H1, resp_func, info, K = K, windowW = inputs['spectral_win'],

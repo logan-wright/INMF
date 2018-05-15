@@ -18,7 +18,7 @@ SZA = 36.79
 SunElliptic = 1.00787
 
 # Ending Conditions
-max_i = 500
+max_i = 15
 
 # max_i: Maximum number of iterations to use (If max_i is less than 10 the
 #        default value of 500 iterations will be used)
@@ -33,6 +33,7 @@ epsilon = 0
 #		LOREM
 # aso, (Abundance-Sum-to-One) =  
 #		IPSUM
+# If norm = aso, then an additional parameter is need (delta = 100)
 # refl, (Reflectance) = 
 #		DOLORES
 # pixel, (Weight by Pixel) = 
@@ -41,9 +42,11 @@ epsilon = 0
 #		FACTO
 
 norm = aso
+delta = 100
+
+
 
 # Constraints - Set Yes or No
-ASO = No
 smooth_spectral = Yes
 smooth_spatial = Yes
 
