@@ -74,7 +74,7 @@ import copy
 import math
 import numpy as np
 import scipy.io as sio
-import matplotlib as mpl
+
 # import multiprocessing as mp
 import matplotlib.pyplot as plt
 
@@ -161,32 +161,41 @@ class NMF_obj(object):
         nmf.NMF(self)
 
     def INMF(self):
-        # Do stuff
+        # Do INMF iteration
         nmf.INMF(self)
 
         # Calculate Residual
         recon = np.reshape(np.dot(self.results.W,self.results.H), (self.scenesize[0],self.scenesize[1],self.scenesize[3]))
-        resid = np.sum(np.sqrt((self.scene.data_cube - recon) ** 2), 2)
+        self.results.residual = np.sum(np.sqrt((self.scene.data_cube - recon) ** 2), 2)
 
         # Reshape Spatial Abundances
-        abundances = np.reshape(np.transpose(self.results.H), (self.scenesize[0],self.scenesize[1],self.scenesize[2]))
-
+        self.results.H = np.reshape(np.transpose(self.results.H), (self.scenesize[0],self.scenesize[1],self.scenesize[2]))
         self.status = 'Results Computed!'
+        print(self.status)
 
     def plot(self):
-        plt.figure()
-        plt.plot(self.results.W)
-        plt.plot(self.endmembers['spectra'],'--')
-        plt.savefig('endmembers.png')
-
-        plt.figure()
-        plt.plot(self.results.cost)
-        plt.savefig('cost.png')
-        # nmf_output.plot_nmf(self)
+        '''
+        nmf_output.plot_nmf() - plots and saves figures of INMF results,
+            self.INMF() must be called before this function
+        '''
+        # Check status
+        if self.status is not 'Results Computed!':
+            print('INMF results not yet computed')
+            return
+        else:
+            nmf_output.plot_nmf(self)
 
     def output():
-
-        nmf_output.nmf_output(self)
+        '''
+        nmf_output.output_nmf() - saves INMF run data for future analysis,
+            self.INMF() must be called before this function
+        '''
+        # Check status
+        if self.status is not 'Results Computed!':
+            print('INMF results not yet computed')
+            return
+        else:
+            nmf_output.nmf_output(self)
 
 
 # Read Parameter and Input Files
@@ -211,9 +220,8 @@ INMF_processing.initialize()
 
 # Normalization
 if inputs['norm'] == 'none':
-    solar_irrad = 5
+    print('No Normalization')
 
-    # hico_refl = hypercube.data_cube/
 elif inputs['norm'] == 'aso':
     print('Applying Abundance-Sum-to-One Normalization')
     # delta_vec = delta*inputs['aso_vec']
@@ -221,7 +229,9 @@ elif inputs['norm'] == 'aso':
 
 elif inputs['norm'] == 'refl':
     print('Applying Top-of-Atmosphere Reflectance Normalization')
+    solar_irrad = 5
 
+    # hico_refl = hypercube.data_cube/
 
 elif inputs['norm'] == 'pixel':
     print('Applying Pixel-by-Pixel Spatial Normalization')

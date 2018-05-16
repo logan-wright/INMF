@@ -1,6 +1,7 @@
-import numpy as N
+import numpy as np
 import scipy.io as sio
 from datetime import datetime
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 def plot_nmf(NMF_object, cmaps = dict([('Asphalt','Greys'),
@@ -15,10 +16,13 @@ def plot_nmf(NMF_object, cmaps = dict([('Asphalt','Greys'),
     nmf_output.plot_nmf() - plots and saves figures based on the output of the
                              INMF algorithm
 
-    Version 1.0
+    Version 1.1
     Created on: Mar, 16, 2017
-    Last Modified: June, 14, 2017
+    Last Modified: May, 16, 2016
     Author: Logan Wright, logan.wright@colorado.edu
+
+    Version 1.1 Update Notes:
+        Function updated to accept NMF_object and be more pythonic
 
      - Given an input wavelength array and spectrum, and output response
        function, wavelength and fwhm resample the spectraum into the output response function.
@@ -36,22 +40,18 @@ def plot_nmf(NMF_object, cmaps = dict([('Asphalt','Greys'),
     Outputs:
         Saved figure of the endmember spectra, abundanes and the residual
     """
-    # Get Current Time
-    timenow = datetime.now()
-    timenow_str = timenow.strftime('%Y_%m_%d_%H%M')
-
     # Get Size of array
-    I, J, K = NMF_object.scenesize
+    I, J, K, L = NMF_object.scenesize
 
     # Plot Cost Function Descent
     plt.figure('cost')
     labels = ['Default','Smoothing','ASO']
-    for i in range(len(NMF_object.results.cost)):
-        plt.plot(NMF_object.results.cost[i,:],label = labels[i])
+    # for i in range(len(NMF_object.results.cost)):
+    plt.plot(NMF_object.results.cost[i,:])
     plt.xlabel('Number of Iterations')
     plt.ylabel('Cost Function Value')
-    plt.legend(loc = 'best')
-    plt.savefig(timenow_str + '_' + NMF_object.inputs['name'] + '_cost.png', format = 'png', dpi = 300, bbox_inches = 'tight', transparent = True)
+    plt.legend(labels, loc = 'best')
+    plt.savefig(NMF_object.inputs['name'] + '_cost.png', format = 'png', dpi = 300, bbox_inches = 'tight', transparent = True)
     plt.close('cost')
 
     plt.figure('soln',figsize = (5.3,4))
@@ -59,7 +59,7 @@ def plot_nmf(NMF_object, cmaps = dict([('Asphalt','Greys'),
     plt.ylabel('Radiance [$W m^{-2} sr^{-1} \mu m^{-1}$]')
     for i in range(K):
         endmember_color = mpl.cm.get_cmap(cmaps[NMF_object.endmembers['titles'][i]],128)
-        plt.plot(NMF_object.scene.resp_func['wvl'],NMF_object.endmembers['spectra'][:,i],linestyle = '-',linewidth = 2, color = endmember_color(0.75),label = NMF_object.endmember['titles'][i])
+        plt.plot(NMF_object.scene.resp_func['wvl'],NMF_object.endmembers['spectra'][:,i],linestyle = '-',linewidth = 2, color = endmember_color(0.75),label = NMF_object.endmembers['titles'][i])
 
     x01,xn1,y01,yn1 = plt.axis()
     plt.legend(ncol = 2, columnspacing = 1, handletextpad = 0)
@@ -75,39 +75,39 @@ def plot_nmf(NMF_object, cmaps = dict([('Asphalt','Greys'),
 
     if yn2 > yn1:
         plt.axis([390,950,0,yn2])
-        plt.savefig(timenow_str + '_' + NMF_object.inputs['name'] + '_init_endmembers.png', format = 'png', dpi = 300, bbox_inches = 'tight', transparent = True)
+        plt.savefig(NMF_object.inputs['name'] + '_init_endmembers.png', format = 'png', dpi = 300, bbox_inches = 'tight', transparent = True)
 
         plt.figure('soln')
         plt.axis([390,950,0,yn2])
-        plt.savefig(timenow_str + '_' + NMF_object.inputs['name'] + '_soln_endmembers.png', format = 'png', dpi = 300, bbox_inches = 'tight', transparent = True)
+        plt.savefig(NMF_object.inputs['name'] + '_soln_endmembers.png', format = 'png', dpi = 300, bbox_inches = 'tight', transparent = True)
 
     else:
         plt.axis([390,950,0,yn1])
-        plt.savefig(timenow_str + '_' + NMF_object.inputs['name'] + '_init_endmembers.png', format = 'png', dpi = 300, bbox_inches = 'tight', transparent = True)
+        plt.savefig(NMF_object.inputs['name'] + '_init_endmembers.png', format = 'png', dpi = 300, bbox_inches = 'tight', transparent = True)
 
         plt.figure('soln')
         plt.axis([390,950,0,yn1])
-        plt.savefig(timenow_str + '_' + NMF_object.inputs['name'] + '_soln_endmembers.png', format = 'png', dpi = 300, bbox_inches = 'tight', transparent = True)
+        plt.savefig(NMF_object.inputs['name'] + '_soln_endmembers.png', format = 'png', dpi = 300, bbox_inches = 'tight', transparent = True)
 
     plt.close('soln')
     plt.close('init')
 
     for i in range(K):
         plt.figure(figsize = ((J/I*10),11.9))
-        cax = plt.contourf(N.fliplr(NMF_object.results.H[:,:,i]), cmap = cmaps[NMF_object.endmembers['titles'][i]], levels = N.linspace(0,0.8,num = 100), extend = 'max')
+        cax = plt.contourf(np.fliplr(NMF_object.results.H[:,:,i]), cmap = cmaps[NMF_object.endmembers['titles'][i]], levels = np.linspace(0,0.8,num = 100), extend = 'max')
         plt.xticks([],[])
         plt.yticks([],[])
         cbar = plt.colorbar(cax, ticks = [0, 0.2, 0.4, 0.6, 0.8], orientation = 'horizontal', pad = 0.025, aspect = 7, shrink = 0.9)
         cbar.ax.tick_params(labelsize = 14)
 
-        plt.savefig(timenow_str + '_' + name + '_' + titles[i] + '.png', format = 'png', dpi = 300,bbox_inches = 'tight', transparent = True)
+        plt.savefig(timenow_str + '_' + NMF_object.inputs['name'] + '_' + NMF_object.endmembers['titles'][i] + '.png', format = 'png', dpi = 300,bbox_inches = 'tight', transparent = True)
         plt.close()
 
-    plt.figure('resid',figsize = ((J/I*10),10))
-    plt.contourf(output['residual'],cmap = 'inferno')
-    plt.colorbar()
-    plt.savefig(timenow_str + '_' + name + '_resid' + '.png', format = 'png', dpi = 300,bbox_inches = 'tight', transparent = True)
-    plt.close('resid')
+    # plt.figure('resid',figsize = ((J/I*10),10))
+    # plt.contourf(output['residual'],cmap = 'inferno')
+    # plt.colorbar()
+    # plt.savefig(timenow_str + '_' + NMF_object.inputs['name'] + '_resid' + '.png', format = 'png', dpi = 300,bbox_inches = 'tight', transparent = True)
+    # plt.close('resid')
 
 def nmf_output(output):
     """
@@ -137,15 +137,15 @@ def nmf_output(output):
     new_output = dict([('endmembers',output['W']),
                         ('iterations',output['n_iter']),
                         ('titles',output['titles']),
-                        ('wavelengths',N.squeeze(output['wavelengths'])),
+                        ('wavelengths',np.squeeze(output['wavelengths'])),
                         ('cost',output['cost']),
                         ('initialW',output['W1'])])
     # Calculate Residual
-    recon = N.reshape(N.dot(output['W'],output['H']), (output['dims'][0],output['dims'][1],output['dims'][2]))
-    new_output['residual'] = N.sum(N.sqrt((output['datacube'] - recon) ** 2), 2)
+    recon = np.reshape(np.dot(output['W'],output['H']), (output['dims'][0],output['dims'][1],output['dims'][2]))
+    new_output['residual'] = np.sum(np.sqrt((output['datacube'] - recon) ** 2), 2)
 
     # Reshape Spatial Abundances
-    new_output['abundances'] = N.reshape(N.transpose(output['H']), (output['dims'][0],output['dims'][1],output['dims'][3]))
+    new_output['abundances'] = np.reshape(np.transpose(output['H']), (output['dims'][0],output['dims'][1],output['dims'][3]))
 
     # Export Data as .mat files
     timenow = datetime.now()
