@@ -14,7 +14,7 @@ Description:
         nmf.PSnsNMF, Piecewise Smoothess  "nonsmooth" NMF Described by Jia and
                      Qian, 2009 and Pascual-Montano, A. et al., 2006
 """
-import numpy as N
+import numpy as np
 import numpy.matlib
 import scipy.ndimage as scimg
 from datetime import datetime
@@ -51,7 +51,7 @@ def NMF(data, W, H, K = 5, maxiter = 500, debug = False):
     # Define Cost Function for Lee & Seung
     #   Cost function is Frobenius Norm of difference between A and W*H
     def cost_function(A, W, H):
-        cost = N.linalg.norm(A - N.dot(W, H), ord = 'fro')
+        cost = np.linalg.norm(A - np.dot(W, H), ord = 'fro')
         return cost
 
     # Define Ending Conditions, these are dependent on the data value
@@ -60,7 +60,7 @@ def NMF(data, W, H, K = 5, maxiter = 500, debug = False):
 
     # Flatten data to 2 dimensions
     I,J,L = data.shape
-    A = N.transpose(N.reshape(data,(I * J, L)))
+    A = np.transpose(np.reshape(data,(I * J, L)))
 
     # Initialize looping counters and flags
     count = 1           # Iteration Counter
@@ -75,17 +75,17 @@ def NMF(data, W, H, K = 5, maxiter = 500, debug = False):
         timenow = datetime.now()
         timenow_str = timenow.strftime('%Y_%m_%d_%H%M')
         # Reshape Spatial Abundances
-        H_recon = N.reshape(N.transpose(H), (I, J, K))
-        N.savez(debugpath + 'NMF_DebugOutput_' + timenow_str, W = W, H = H_recon, count = count)
+        H_recon = np.reshape(np.transpose(H), (I, J, K))
+        np.savez(debugpath + 'NMF_DebugOutput_' + timenow_str, W = W, H = H_recon, count = count)
 
     # Lee & Seung Multiplicative Update Algorithm While Loop
     while stop_criteria == 0:
         # Update Spatial Abundances
-        H = H * (N.dot(N.transpose(W), A)) / (N.dot(N.dot(N.transpose(W), W), H) + 10e-9)
+        H = H * (np.dot(np.transpose(W), A)) / (np.dot(np.dot(np.transpose(W), W), H) + 10e-9)
         # Update Spectral Endmembers
-        W = W * (N.dot(A, N.transpose(H))) / (N.dot(N.dot(W, H), N.transpose(H))+ 10e-9)
+        W = W * (np.dot(A, np.transpose(H))) / (np.dot(np.dot(W, H), np.transpose(H))+ 10e-9)
 
-        cost = N.append(cost,cost_function(A, W, H))
+        cost = np.append(cost,cost_function(A, W, H))
         count += 1 # Update iteration counter
 
         # Stop Criteria: If either stop criteria is met iteration will cease.
@@ -105,19 +105,19 @@ def NMF(data, W, H, K = 5, maxiter = 500, debug = False):
             timenow = datetime.now()
             timenow_str = timenow.strftime('%Y_%m_%d_%H%M')
             # Reshape Spatial Abundances
-            H_recon = N.reshape(N.transpose(H), (I,J,K))
-            N.savez(debugpath + 'NMF_DebugOutput_' + timenow_str, W = W, H = H_recon, count = count)
+            H_recon = np.reshape(np.transpose(H), (I,J,K))
+            np.savez(debugpath + 'NMF_DebugOutput_' + timenow_str, W = W, H = H_recon, count = count)
 
     # Reformat cost function into standard format
-    cost = N.reshape(cost, (1, count))
+    cost = np.reshape(cost, (1, count))
 
     # If debug option is turned on output final data before returning
     if debug:
         timenow = datetime.now()
         timenow_str = timenow.strftime('%Y_%m_%d_%H%M')
         # Reshape Spatial Abundances
-        H_recon = N.reshape(N.transpose(H), (I, J, K))
-        N.savez(debugpath + 'NMF_DebugOutput_' + timenow_str + '_Final', W = W, H = H_recon,
+        H_recon = np.reshape(np.transpose(H), (I, J, K))
+        np.savez(debugpath + 'NMF_DebugOutput_' + timenow_str + '_Final', W = W, H = H_recon,
                 cost = cost, count = count)
 
     ret_dict = dict([('W',W), ('H',H), ('cost',cost), ('n_iter',count)])
@@ -163,31 +163,32 @@ def INMF(NMF_object):
     t1 = datetime.now()
     # Unpack NMF_object
     [I,J,K,L] = NMF_object.scenesize
+    # maxiter = NMF_object.inputs['max_i']
 
     # Define Cost Function for Lee & Seung
     #   Cost function is Frobenius Norm of difference between A and W*H
     def cost_function(A,W,Af,Wf,H,g_W,g_H,alpha,beta):
         # Calculate the cost of the smoothness portion of the cost function
-        cost2 = alpha * N.sum(g_W) + beta * N.sum(g_H)
+        cost2 = alpha * np.sum(g_W) + beta * np.sum(g_H)
         # Calculate the total cost function
-        cost1 = N.linalg.norm(A - N.dot(W,H), ord = 'fro') + cost2
+        cost1 = np.linalg.norm(A - np.dot(W,H), ord = 'fro') + cost2
         # Calculate the ASO Component
-        cost3 = N.linalg.norm(Af - N.dot(Wf,H), ord = 'fro') + cost2
+        cost3 = np.linalg.norm(Af - np.dot(Wf,H), ord = 'fro') + cost2
         cost = [[cost1], [cost2], [cost3]]
         return cost
 
     # Check input data for consistency
-    if N.min(N.mod(NMF_object.inputs['spatial_win'],2)) == 0:
+    if np.min(np.mod(NMF_object.inputs['spatial_win'],2)) == 0:
         print('Window sizes MUST be Odd')
 
     # Define Ending Conditions, these are dependent on the data value
     #   Change end condition
-    d_cost = 2e-10 * N.sum(NMF_object.scene.data_cube)
+    d_cost = 2e-10 * np.sum(NMF_object.scene.data_cube)
 #    print('Minimum Change per Iteration End Condition: ',d_cost)
 
     # Flatten data to 2 dimensions
     I,J,L = NMF_object.scene.data_cube.shape
-    A = N.transpose(N.reshape(NMF_object.scene.data_cube,(I*J,L)))
+    # A = np.transpose(np.reshape(NMF_object.scene.data_cube,(I*J,L)))
     W1 = NMF_object.results.W
 
     # Initialize Data
@@ -197,7 +198,7 @@ def INMF(NMF_object):
     stable_flag = 0     # Stable_Flag, determines when spectral iteration begins
 
     # Load Irradiance Data and Create Fit Function for Fixed Atmosphere section
-    irrad = N.genfromtxt('/Users/wrightad/Documents/MODTRAN/DATA/SUN01med2irradwnNormt.dat',skip_header = 3)
+    irrad = np.genfromtxt('/Users/wrightad/Documents/MODTRAN/DATA/SUN01med2irradwnNormt.dat',skip_header = 3)
     # Convert to wavelength increments
     irrad[:,0] = 1e7 / irrad[:,0]
     irrad[:,1] = irrad[:,1] * (1 / (irrad[:,0] ** 2)) * 1e11
@@ -205,15 +206,15 @@ def INMF(NMF_object):
     # Convolve to NEON Wavelength
     I0 = super_resample.super_resample(irrad[:,1], irrad[:,0], NMF_object.scene.resp_func['wvl'], NMF_object.scene.resp_func['fwhm']) * 1000
     tr = nmf_eval.bodhaine(NMF_object.scene.resp_func['wvl']/1000)
-    fit = N.reshape(I0*tr,(1,-1))
+    fit = np.reshape(I0*tr,(1,-1))
 
     # Preallocate indices and Arrays for finding smoothness parameters
-    g_W = N.zeros((K,1))
-    h_W = N.zeros((L,K))
-    gp_W = N.zeros((L,K))
-    g_H = N.zeros((K,1))
-    h_H = N.zeros((K,I*J))
-    gp_H = N.zeros((K,I*J))
+    g_W = np.zeros((K,1))
+    h_W = np.zeros((L,K))
+    gp_W = np.zeros((L,K))
+    g_H = np.zeros((K,1))
+    h_H = np.zeros((K,I*J))
+    gp_H = np.zeros((K,I*J))
 
     indexW0 = list(range(K))
     indexW = list(range(K))
@@ -223,39 +224,39 @@ def INMF(NMF_object):
 
     for k in range(K):
         # Create Indices for Spectral Endmembers
-        indexW0[k] = N.reshape(N.matlib.repmat(N.arange(0, L, 1), NMF_object.inputs['spectral_win'][k] - 1, 1), (1, L * (NMF_object.inputs['spectral_win'][k] - 1)), order = 'F')
-        modw = N.arange(-(NMF_object.inputs['spectral_win'][k] // 2), (NMF_object.inputs['spectral_win'][k] / 2), dtype = int)
-        modw = N.delete(modw,NMF_object.inputs['spectral_win'][k] // 2)
-        indexW[k] = indexW0[k] + N.matlib.repmat(modw, 1, L)
+        indexW0[k] = np.reshape(np.matlib.repmat(np.arange(0, L, 1), NMF_object.inputs['spectral_win'][k] - 1, 1), (1, L * (NMF_object.inputs['spectral_win'][k] - 1)), order = 'F')
+        modw = np.arange(-(NMF_object.inputs['spectral_win'][k] // 2), (NMF_object.inputs['spectral_win'][k] / 2), dtype = int)
+        modw = np.delete(modw,NMF_object.inputs['spectral_win'][k] // 2)
+        indexW[k] = indexW0[k] + np.matlib.repmat(modw, 1, L)
         # Replace out of range values with center value (indexW0 value)
-        outofrange = N.logical_or(indexW[k] < 0, indexW[k] >= L)
+        outofrange = np.logical_or(indexW[k] < 0, indexW[k] >= L)
         indexW[k][outofrange] = indexW0[k][outofrange]
 
         # Create Indices for Spatial Abundances
         n1 = (NMF_object.inputs['spatial_win'][k] // 2)
         n2 = ((NMF_object.inputs['spatial_win'][k] ** 2) // 2) # Number of points in Neighborhood
 
-        temp_HI0 = N.matlib.repmat(N.arange(0,I,1, dtype = int), n2, J)
-        temp_HJ0 = N.transpose(N.reshape(N.matlib.repmat(N.arange(0, J, 1, dtype = int), I, n2), (I * J, n2), order = 'F'))
+        temp_HI0 = np.matlib.repmat(np.arange(0,I,1, dtype = int), n2, J)
+        temp_HJ0 = np.transpose(np.reshape(np.matlib.repmat(np.arange(0, J, 1, dtype = int), I, n2), (I * J, n2), order = 'F'))
 
         struct = scimg.iterate_structure(scimg.generate_binary_structure(2, 1), n1)
-        indices = N.asarray(N.nonzero(struct)) - n1;
-        indices = N.delete(indices, n2/2, axis = 1)
+        indices = np.asarray(np.nonzero(struct)) - n1;
+        indices = np.delete(indices, n2/2, axis = 1)
 
-        modi = N.reshape(indices[0,:],(n2,1))
-        modj = N.reshape(indices[1,:],(n2,1))
+        modi = np.reshape(indices[0,:],(n2,1))
+        modj = np.reshape(indices[1,:],(n2,1))
 
-        temp_HI = N.add(temp_HI0,modi)
-        outofrange = N.logical_or(temp_HI < 0,temp_HI >= I)
+        temp_HI = np.add(temp_HI0,modi)
+        outofrange = np.logical_or(temp_HI < 0,temp_HI >= I)
         temp_HI[outofrange] = temp_HI0[outofrange]
 
-        temp_HJ = N.add(temp_HJ0,modj)
-        outofrange = N.logical_or(temp_HJ < 0,temp_HJ >= J)
+        temp_HJ = np.add(temp_HJ0,modj)
+        outofrange = np.logical_or(temp_HJ < 0,temp_HJ >= J)
         temp_HJ[outofrange] = temp_HJ0[outofrange]
 
         # Change 2D Matric Subscripts to Linear Indicies
-        indexH[k] = N.ravel_multi_index((temp_HI, temp_HJ), (I,J))
-        indexH0[k] = N.ravel_multi_index((temp_HI0, temp_HJ0), (I,J))
+        indexH[k] = np.ravel_multi_index((temp_HI, temp_HJ), (I,J))
+        indexH0[k] = np.ravel_multi_index((temp_HI0, temp_HJ0), (I,J))
 
     # Clear the large placeholding variables
     del(temp_HI,temp_HI0,temp_HJ,temp_HJ0)
@@ -263,15 +264,14 @@ def INMF(NMF_object):
     # Calculate Initial Cost
     for k in range(K):
         Wdiff = NMF_object.results.W[indexW0[k], k] - NMF_object.results.W[indexW[k], k]
-        g_W[k] = N.sum(-N.exp((-(Wdiff) ** 2) / NMF_object.inputs['spectral_gamma']) + 1)
+        g_W[k] = np.sum(-np.exp((-(Wdiff) ** 2) / NMF_object.inputs['spectral_gamma']) + 1)
 
         Hdiff = NMF_object.results.H[k,indexH0[k]] - NMF_object.results.H[k,indexH[k]]
-        g_H[k] = N.sum(-N.exp((-(Hdiff) ** 2) / NMF_object.inputs['spatial_gamma']) + 1)
+        g_H[k] = np.sum(-np.exp((-(Hdiff) ** 2) / NMF_object.inputs['spatial_gamma']) + 1)
+    Wf = np.vstack((NMF_object.results.W, NMF_object.inputs['delta_vec']))
+    Af = np.vstack((NMF_object.results.A, NMF_object.inputs['delta'] * np.ones((1,P))))
 
-    Wf = N.vstack((NMF_object.results.W, N.append(NMF_object.inputs['delta'] * N.ones((1,K-1)),0)))
-    Af = N.vstack((A, NMF_object.inputs['delta'] * N.ones((1,P))))
-
-    cost = cost_function(A, NMF_object.results.W, Af, Wf, NMF_object.results.H, g_W, g_H, NMF_object.inputs['spectral_strength'], NMF_object.inputs['spatial_strength'])
+    cost = cost_function(NMF_object.results.A, NMF_object.results.W, Af, Wf, NMF_object.results.H, g_W, g_H, NMF_object.inputs['spectral_strength'], NMF_object.inputs['spatial_strength'])
 
     print('INMF Initialization Time:',datetime.now()-t1)
 
@@ -279,29 +279,29 @@ def INMF(NMF_object):
     while stop_criteria == 0:
         t2 = datetime.now()
         # Upated W and A with the ASO constraint row.
-        Wf = N.vstack((NMF_object.results.W, N.append(NMF_object.inputs['delta'] * N.ones((1,K-1)),0)))
-        Af = N.vstack((A, NMF_object.inputs['delta'] * N.ones((1,P))))
+        Wf = np.vstack((NMF_object.results.W, NMF_object.inputs['delta_vec']))
+        Af = np.vstack((NMF_object.results.A, NMF_object.inputs['delta'] * np.ones((1,P))))
 
         for k in range(K):
             # Generate Spectral Smoothness Functions
             Wdiff = NMF_object.results.W[indexW0[k], k] - NMF_object.results.W[indexW[k], k]
-            g_W[k] = N.sum(-N.exp((-(Wdiff) ** 2) / NMF_object.inputs['spectral_gamma']) + 1)
-            h_W_temp = 2 / NMF_object.inputs['spectral_gamma'] * N.reshape(N.exp((-(Wdiff) ** 2) / NMF_object.inputs['spectral_gamma']), (NMF_object.inputs['spectral_win'][k] - 1, L))
-            h_W[:,k] = N.sum(h_W_temp, 0)
-            gp_W_temp = 2 / NMF_object.inputs['spectral_gamma'] *  N.reshape(Wdiff * N.exp((-(Wdiff) ** 2) / NMF_object.inputs['spectral_gamma']), (NMF_object.inputs['spectral_win'][k] - 1, L))
-            gp_W[:,k] = N.sum(gp_W_temp, 0)
+            g_W[k] = np.sum(-np.exp((-(Wdiff) ** 2) / NMF_object.inputs['spectral_gamma']) + 1)
+            h_W_temp = 2 / NMF_object.inputs['spectral_gamma'] * np.reshape(np.exp((-(Wdiff) ** 2) / NMF_object.inputs['spectral_gamma']), (NMF_object.inputs['spectral_win'][k] - 1, L))
+            h_W[:,k] = np.sum(h_W_temp, 0)
+            gp_W_temp = 2 / NMF_object.inputs['spectral_gamma'] *  np.reshape(Wdiff * np.exp((-(Wdiff) ** 2) / NMF_object.inputs['spectral_gamma']), (NMF_object.inputs['spectral_win'][k] - 1, L))
+            gp_W[:,k] = np.sum(gp_W_temp, 0)
 
             # Generate Spatial Smoothness Functions
             Hdiff = NMF_object.results.H[k,indexH0[k]] - NMF_object.results.H[k,indexH[k]]
-            g_H[k] = N.sum(-N.exp((-(Hdiff) ** 2) / NMF_object.inputs['spatial_gamma']) + 1)
-            h_H_temp = N.exp((-(Hdiff) ** 2) / NMF_object.inputs['spatial_gamma'])
-            h_H[k,:] = 2 / NMF_object.inputs['spatial_gamma'] * N.sum(h_H_temp, 0)
-            gp_H_temp = Hdiff * N.exp((-(Hdiff) ** 2) / NMF_object.inputs['spatial_gamma'])
-            gp_H[k,:] = 2 / NMF_object.inputs['spatial_gamma'] * N.sum(gp_H_temp, 0)
+            g_H[k] = np.sum(-np.exp((-(Hdiff) ** 2) / NMF_object.inputs['spatial_gamma']) + 1)
+            h_H_temp = np.exp((-(Hdiff) ** 2) / NMF_object.inputs['spatial_gamma'])
+            h_H[k,:] = 2 / NMF_object.inputs['spatial_gamma'] * np.sum(h_H_temp, 0)
+            gp_H_temp = Hdiff * np.exp((-(Hdiff) ** 2) / NMF_object.inputs['spatial_gamma'])
+            gp_H[k,:] = 2 / NMF_object.inputs['spatial_gamma'] * np.sum(gp_H_temp, 0)
 
         # Calculate Cost Function before update (i)
         if count != 0:
-            cost = N.append(cost, cost_function(A, NMF_object.results.W, Af, Wf, NMF_object.results.H, g_W, g_H, NMF_object.inputs['spectral_strength'], NMF_object.inputs['spatial_strength']), axis = 1)
+            cost = np.append(cost, cost_function(NMF_object.results.A, NMF_object.results.W, Af, Wf, NMF_object.results.H, g_W, g_H, NMF_object.inputs['spectral_strength'], NMF_object.inputs['spatial_strength']), axis = 1)
 
             # Stop Criteria: If either stop criteria is met iteration will cease.
             #   1. Have we achieved an acceptable convergence? (change < d_cost)
@@ -313,14 +313,14 @@ def INMF(NMF_object):
                 stop_criteria = 1
                 print('PSNMF: Number of iterations exceeded the maxmimum allowed',count)
 
-        NMF_object.results.H = NMF_object.results.H * (N.dot(N.transpose(Wf), Af) + NMF_object.inputs['spatial_strength'] * (NMF_object.results.H * h_H - gp_H)) / (N.dot(N.dot(N.transpose(Wf), Wf),NMF_object.results.H) + NMF_object.inputs['spatial_strength'] * NMF_object.results.H * h_H + 10e-9) # Spatial Abundances
+        NMF_object.results.H = NMF_object.results.H * (np.dot(np.transpose(Wf), Af) + NMF_object.inputs['spatial_strength'] * (NMF_object.results.H * h_H - gp_H)) / (np.dot(np.dot(np.transpose(Wf), Wf),NMF_object.results.H) + NMF_object.inputs['spatial_strength'] * NMF_object.results.H * h_H + 10e-9) # Spatial Abundances
 
         # Check if stable
         if stable_flag == 0 and count >= 5 and (cost[0,-1] - cost[0,-2]) < 0:
                 stable_flag = 1
 
         if stable_flag == 1:
-            NMF_object.results.W = NMF_object.results.W * (N.dot(A, N.transpose(NMF_object.results.H)) + NMF_object.inputs['spectral_strength'] * (NMF_object.results.W * h_W - gp_W)) / (N.dot(N.dot(NMF_object.results.W,NMF_object.results.H), N.transpose(NMF_object.results.H)) + NMF_object.inputs['spectral_strength'] * NMF_object.results.W * h_W + 10e-9) # Spectral Endmembers
+            NMF_object.results.W = NMF_object.results.W * (np.dot(NMF_object.results.A, np.transpose(NMF_object.results.H)) + NMF_object.inputs['spectral_strength'] * (NMF_object.results.W * h_W - gp_W)) / (np.dot(np.dot(NMF_object.results.W,NMF_object.results.H), np.transpose(NMF_object.results.H)) + NMF_object.inputs['spectral_strength'] * NMF_object.results.W * h_W + 10e-9) # Spectral Endmembers
             a = nmf_eval.scattering_fit(NMF_object.results.W[:,-1], fit)
 
             NMF_object.results.W[:,-1] = a

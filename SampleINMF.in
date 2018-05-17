@@ -41,8 +41,10 @@ epsilon = 0
 # spectral, (Weight by Spectra) = 
 #		FACTO
 
-norm = aso
+#norm = aso
+norm = pixel
 delta = 100
+aso_vec = 1,1,1,1,0
 
 
 

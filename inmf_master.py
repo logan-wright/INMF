@@ -74,8 +74,6 @@ import copy
 import math
 import numpy as np
 import scipy.io as sio
-
-# import multiprocessing as mp
 import matplotlib.pyplot as plt
 
 # Import individual functions
@@ -87,12 +85,15 @@ from loading import load_input_file
 from super_resample import super_resample
 
 class NMF_result(object):
-    def __init__(self,W,H):
+    def __init__(self,data,W,H):
+        [I,J,L] = data.shape
+        self.A = np.transpose(np.reshape(data,(I*J,L)))
         self.W = W
         self.H = H
-        self.cost = []
-        self.residual = []
-        self.iter = []
+        self.cost = [None]
+        self.residual = [None]
+        self.iter = [None]
+        self.norm = [None]
 
 # Define the NMF object
 class NMF_obj(object):
@@ -155,14 +156,29 @@ class NMF_obj(object):
 
         [I,J,K,L] = self.scenesize
         H_init = np.ones((K,I*J)) / K
-        self.results = NMF_result(W_init, H_init)
+        self.results = NMF_result(self.scene.data_cube,W_init, H_init)
+
+        self.inputs['delta_vec'] = np.full((1,K),0)
 
     def NMF(self):
         nmf.NMF(self)
 
     def INMF(self):
+
         # Do INMF iteration
         nmf.INMF(self)
+
+        # Use Normalization Factor to Return to Radiance Units (if neccesary)
+        if self.results.norm is not None:
+            dim = self_results.norm.shape
+
+            if dim == self.scenesize[2]:
+                INMF_processing.results.A = np.transpose(np.transpose(INMF_processing.results.A)*INMF_processing.results.norm)
+                INMF_processing.results.W = np.transpose(np.transpose(INMF_processing.results.W)*INMF_processing.results.norm)
+            elif dim == self.scenesize[0]*self.scenesize[1]:
+                INMF_processing.results.A = INMF_processing.results.A*INMF_processing.results.norm
+            else:
+                print('Unable to Recogize Normalization Dimensions')
 
         # Calculate Residual
         recon = np.reshape(np.dot(self.results.W,self.results.H), (self.scenesize[0],self.scenesize[1],self.scenesize[3]))
@@ -224,22 +240,47 @@ if inputs['norm'] == 'none':
 
 elif inputs['norm'] == 'aso':
     print('Applying Abundance-Sum-to-One Normalization')
-    # delta_vec = delta*inputs['aso_vec']
-
+    try:
+        delta_vec = INMF_processing.inputs['delta']*np.array(INMF_processing.inputs['aso_vec'],ndmin = 2)
+    except KeyError:
+        delta_vec = np.full((1,K),INMF_processing.inputs['delta'])
+    INMF_processing.inputs['delta_vec'] = delta_vec
 
 elif inputs['norm'] == 'refl':
     print('Applying Top-of-Atmosphere Reflectance Normalization')
-    solar_irrad = 5
+    # Load Irradiance Data and Create Fit Function for Fixed Atmosphere section
+    # Using standard TOA Irradiance Spectrum
+    irrad = np.genfromtxt('/Users/wrightad/Documents/MODTRAN/DATA/SUN01med2irradwnNormt.dat',skip_header = 3)
+    # Convert to wavelength increments
+    irrad[:,0] = 1e7 / irrad[:,0]
+    irrad[:,1] = irrad[:,1] * (1 / (irrad[:,0] ** 2)) * 1e11
+    irrad = irrad[0:-1,:]
+    # Resample to HICO wavelengths
+    solar_irrad = super_resample(irrad[:,1],irrad[:,0],INMF_processing.scene.resp_func['wvl'],INMF_processing.scene.resp_func['fwhm'])
 
-    # hico_refl = hypercube.data_cube/
+    INMF_processing.results.norm = solar_irrad
+    INMF_processing.results.A = np.transpose(np.transpose(INMF_processing.results.A)/solar_irrad)
+    INMF_processing.results.W = np.transpose(np.transpose(INMF_processing.results.W)/solar_irrad)
 
 elif inputs['norm'] == 'pixel':
     print('Applying Pixel-by-Pixel Spatial Normalization')
 
+    mean_val = np.mean(INMF_processing.results.A, axis = 0)
+
+
+    print(mean_val.shape)
+
+    INMF_processing.results.norm = np.mean(INMF_processing.results.A, axis = 0)
+    INMF_processing.results.A = INMF_processing.results.A/INMF_processing.results.norm
+
+    print(INMF_processing.results.A.shape)
 
 elif inputs['norm'] == 'spectral':
     print('Applying Spectral Normalization')
 
+    INMF_processing.results.norm = np.mean(INMF_processing.results.A, axis = 1)
+    INMF_processing.results.A = np.transpose(np.transpose(INMF_processing.results.A)/INMF_processing.results.norm)
+    INMF_processing.results.W = np.transpose(np.transpose(INMF_processing.results.W)/INMF_processing.results.norm)
 
 else:
     print('No Normalization Specified')
