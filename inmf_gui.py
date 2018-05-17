@@ -158,7 +158,7 @@ inputs_sep.grid(column = 0, row = 9, sticky = 'WE', pady = 10)
 # Initialization and Endmember Selection
 end_num_label = ttk.Label(endframe, text = 'Number of Endmembers:')
 end_num = tkinter.IntVar(endframe, value = '5')
-end_num.trace('w', lambda a, b, c: endmember_update(endmember_entries))
+end_num.trace('w', lambda a, b, c: endmember_update(endmember_entries,endmember_vars))
 
 end_num_entry = ttk.Entry(endframe, textvariable = end_num)
 
