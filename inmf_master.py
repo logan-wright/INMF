@@ -267,7 +267,6 @@ elif inputs['norm'] == 'pixel':
 
     mean_val = np.mean(INMF_processing.results.A, axis = 0)
 
-
     print(mean_val.shape)
 
     INMF_processing.results.norm = np.mean(INMF_processing.results.A, axis = 0)

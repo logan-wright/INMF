@@ -86,8 +86,32 @@ def endmember_update(entries,vars):
             vars.append(tkinter.StringVar(value = 5))
             temp.append(ttk.Entry(endframe, textvariable = vars[-1]))
             temp[2].grid(column = 2, row = row0.get())
+            vars.append(tkinter.IntVar(value = 1))
+            temp.append(ttk.Checkbutton(endframe, variable = vars[-1], state = 'disabled'))
+            temp[3].grid(column = 3, row = row0.get())
             row0.set(int(row0.get()) + 1)
             entries.append(temp)
+
+def aso_toggle_on(entries,delta_entry):
+    # ASO Checkbutton is in the last position [-1]
+    for item in entries:
+        item[-1].state(['!disabled'])
+    delta_entry.state(['!disabled'])
+
+def aso_toggle_off(entries,delta_entry):
+    # ASO Checkbutton is in the last position [-1]
+    for item in entries:
+        item[-1].state(['disabled'])
+    delta_entry.state(['disabled'])
+
+def toggle_state(entries):
+    # ASO Checkbutton is in the last position [-1]
+    for item in entries:
+        current_state = item[3].instate(['disabled'])
+        if current_state:
+            item[3].state(['!disabled'])
+        else:
+            item[3].state(['disabled'])
 
 root = tkinter.Tk()
 root.title('Informed NMF Algorithm')
@@ -180,9 +204,11 @@ end_type_informed.grid(column = 1, row = 3 )
 end_select_label1 = ttk.Label(endframe, text = 'Endmember Name')
 end_select_label2 = ttk.Label(endframe, text = 'Spectral Smoothing Window:')
 end_select_label3 = ttk.Label(endframe, text = 'Spatial Smoothing Window:')
+end_select_label4 = ttk.Label(endframe, text = 'Abundance-Sum-to-One?')
 end_select_label1.grid(column = 0, row = 5)
 end_select_label2.grid(column = 1, row = 5)
 end_select_label3.grid(column = 2, row = 5)
+end_select_label4.grid(column = 3, row = 5)
 
 
 endmember_entries = list()
@@ -206,19 +232,25 @@ endmember_update(endmember_entries,endmember_vars)
 
 #   Normalization
 norm_type = tkinter.StringVar(value = 'none')
-wgt_none = ttk.Radiobutton(normframe, text = 'None', variable = norm_type, value = 'none')
-wgt_refl = ttk.Radiobutton(normframe, text = 'Reflectance', variable = norm_type, value = 'refl')
-wgt_aso = ttk.Radiobutton(normframe, text = 'ASO', variable = norm_type, value = 'aso')
-wgt_bypixel = ttk.Radiobutton(normframe, text = 'Weight by pixel', variable = norm_type, value = 'pixel')
-wgt_byspectral = ttk.Radiobutton(normframe, text = 'Weight by Wavelength', variable = norm_type, value = 'spectral')
+wgt_none = ttk.Radiobutton(normframe, text = 'None', variable = norm_type, value = 'none', command = lambda: aso_toggle_off(endmember_entries,delta_entry))
+wgt_refl = ttk.Radiobutton(normframe, text = 'Reflectance', variable = norm_type, value = 'refl', command = lambda: aso_toggle_off(endmember_entries,delta_entry))
+wgt_aso = ttk.Radiobutton(normframe, text = 'ASO', variable = norm_type, value = 'aso', command = lambda: aso_toggle_on(endmember_entries,delta_entry))
+wgt_bypixel = ttk.Radiobutton(normframe, text = 'Weight by pixel', variable = norm_type, value = 'pixel', command = lambda: aso_toggle_off(endmember_entries,delta_entry))
+wgt_byspectral = ttk.Radiobutton(normframe, text = 'Weight by Wavelength', variable = norm_type, value = 'spectral', command = lambda: aso_toggle_off(endmember_entries,delta_entry))
 
 norm_label = ttk.Label(normframe, text = 'Normalization:')
-norm_label.grid(column = 1, row = 11, sticky = ('W'))
-wgt_none.grid(column = 1, row = 12, sticky = ('W'))
+norm_label.grid(column = 1, row = 11, sticky = 'W')
+wgt_none.grid(column = 1, row = 12, sticky = 'W')
 wgt_refl.grid(column = 1, row = 13, sticky = 'W')
-wgt_aso.grid(column = 2, row = 12, sticky = ('W'))
-wgt_bypixel.grid(column = 2, row = 13, sticky = ('W'))
-wgt_byspectral.grid(column = 3, row = 12, sticky = ('W'))
+wgt_aso.grid(column = 2, row = 12, sticky = 'W')
+wgt_bypixel.grid(column = 2, row = 13, sticky = 'W')
+wgt_byspectral.grid(column = 3, row = 12, sticky = 'W')
+
+delta = tkinter.StringVar(value = 100)
+delta_label = ttk.Label(normframe, text = 'ASO Delta Value:')
+delta_entry = ttk.Entry(normframe, textvariable = delta, state = ['disabled'])
+delta_label.grid(column = 1, row = 14, sticky = 'W')
+delta_entry.grid(column = 2, row = 14, sticky = 'W')
 
 # Constraints
 constraints_label = ttk.Label(conframe, text = 'INMF Constraints:')
@@ -239,10 +271,10 @@ spec_gamma = tkinter.StringVar(value = '0.01')
 spec_gamma_entry = ttk.Entry(conframe, textvariable = spec_gamma)
 
 spatial_str_label = ttk.Label(conframe, text = 'Strength (β):')
-spatial_str = tkinter.StringVar(value = '0.5')
+spatial_str = tkinter.StringVar(value = '0.1')
 spatial_str_entry = ttk.Entry(conframe, textvariable = spatial_str)
 spatial_gamma_label = ttk.Label(conframe, text = 'Width (γh):')
-spatial_gamma = tkinter.StringVar(value = '0.01')
+spatial_gamma = tkinter.StringVar(value = '0.5')
 spatial_gamma_entry = ttk.Entry(conframe, textvariable = spatial_gamma)
 
 spec_smooth_label.grid(column = 1, row = 22, sticky = ('W'))
