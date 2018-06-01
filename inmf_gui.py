@@ -13,7 +13,10 @@ import tkinter
 from tkinter import ttk
 from tkinter import filedialog
 
-def run(root,endmember_entries):
+from scipy.io import loadmat
+import os
+
+def run(root):
     import subprocess
     # Generate INMF Input File
     # Parse tkinter variables into a dictionary that is understood by gen_input_file
@@ -22,8 +25,8 @@ def run(root,endmember_entries):
     spatial_smooth_windows = list()
     for item in endmember_entries:
         endmember_names.append(item[0].get())
-        spectral_smooth_windows.append(item[1].get())
-        spatial_smooth_windows.append(item[2].get())
+        spectral_smooth_windows.append(int(item[1].get()))
+        spatial_smooth_windows.append(int(item[2].get()))
 
     input_params = {'name':outfile.get(),
                     'file':filename.get(),
@@ -33,7 +36,7 @@ def run(root,endmember_entries):
                     # 'SunElliptic' : 1.00787,
                     'max_i' : max_i.get(),
                     'epsilon' : stop_cond.get(),
-                    'Normaliztion' : norm_type.get(),
+                    'norm' : norm_type.get(),
                     'spectral_smooth' : spec_smooth.get(),
                     'smooth_spatial' : spatial_smooth.get(),
                     'spectral_win' : spectral_smooth_windows,
@@ -45,6 +48,17 @@ def run(root,endmember_entries):
                     #'roi' : [100, 200, 101, 201],
                     'wvl_rng' : [9,96] }
 
+
+    # Add Optional parameters
+    if input_params['norm'] == 'aso':
+
+        input_params['delta'] = delta.get()
+        aso_vec = list()
+        # print(len(endmember_names),endmember_vars)
+        for index_i in [(x*3)+2 for x in list(range(len(endmember_names)))]:
+            aso_vec.append(endmember_vars[index_i].get())
+        input_params['aso_vec'] = aso_vec
+
     # Write to File
     inputpath = input_params['file'].split('.')[0] + '.in'
     f = open(inputpath, 'w')
@@ -55,12 +69,34 @@ def run(root,endmember_entries):
     root.destroy()
 
     # Command to run inmf_master.py with the newly created input file_entry
-    subprocess.run(['python','inmf_master.py',inputpath])
-
+    subprocess.Popen(['python','inmf_master.py',inputpath])
 
 def popup_dialog():
     file = filedialog.askopenfilename()
     filename.set(file)
+
+def update_endmember_list(entries,endfile):
+    wdir  = os.getcwd() # Get Current Working Directory
+    try:
+        # Try Loading the Relative Path
+        ends = loadmat(os.path.join(wdir,endfile.get()))
+        names = list(ends.keys())
+
+    except:
+        try:
+            # Try Loading the Absolute path
+            ends = loadmat(endfile.get())
+        except:
+            #print('Named File Does Not Exist')
+            return
+
+    # Remove '__*__' items that are present in .mat file dictionary
+    for item in names:
+        if item[0] == '_':
+            names.remove(item)
+    # Set List as the values for the comboboxes
+    for item in entries:
+        item[0]['values'] = names
 
 def endmember_update(entries,vars):
     n = len(entries)
@@ -105,13 +141,13 @@ def aso_toggle_off(entries,delta_entry):
     delta_entry.state(['disabled'])
 
 def toggle_state(entries):
-    # ASO Checkbutton is in the last position [-1]
+    # Generic toggle state code, input can be a single tkinter object or a list
     for item in entries:
-        current_state = item[3].instate(['disabled'])
+        current_state = item.instate(['disabled'])
         if current_state:
-            item[3].state(['!disabled'])
+            item.state(['!disabled'])
         else:
-            item[3].state(['disabled'])
+            item.state(['disabled'])
 
 root = tkinter.Tk()
 root.title('Informed NMF Algorithm')
@@ -173,6 +209,7 @@ outfile_entry.grid(column = 2, row = 2, sticky = 'W')
 endfile = tkinter.StringVar()
 endfile_label = ttk.Label(inputsframe, text = 'Initialization Endmember Data:')
 endfile_entry = ttk.Entry(inputsframe, textvariable = endfile)
+endfile.trace('w', lambda a, b, c: update_endmember_list(endmember_entries,endfile))
 endfile_label.grid(column = 1, row = 3, sticky = 'W')
 endfile_entry.grid(column = 2, row = 3, sticky = 'W')
 
@@ -305,8 +342,8 @@ max_iter_label.grid(column = 1, row = 32, sticky = ('W'))
 max_iter_entry.grid(column = 2, row = 32, sticky = ('W'))
 
 # Run Button,
-run_label = ttk.Label(bottomframe, text = 'Warning: Depending on the size of your image and INMF settings, running inmfframe may take a long time.', padding = 5)
-run_btn = tkinter.Button(bottomframe, text = 'Run', command = lambda: run(root, endmember_entries), pady = 10, padx = 20)
+run_label = ttk.Label(bottomframe, text = 'Warning: Depending on the size of your image and INMF settings, running INMF may take a long time.', padding = 5)
+run_btn = tkinter.Button(bottomframe, text = 'Run', command = lambda: run(root), pady = 10, padx = 20)
 
 run_label.grid(column = 0, row = 99)
 run_btn.grid(column = 0, row = 100)

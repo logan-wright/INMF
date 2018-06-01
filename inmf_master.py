@@ -64,7 +64,7 @@ import subprocess
 
 # Check if arguments are passed to inmf_master. If not, open the GUI
 try:
-    sys.argv[1]
+    inputfile = sys.argv[1]
 except:
     subprocess.run(['python','inmf_gui.py'])
 
@@ -215,8 +215,12 @@ class NMF_obj(object):
 
 
 # Read Parameter and Input Files
+print(sys.argv,inputfile,'line218')
+
 params = load_input_file('PARAMS.txt')
-inputs = load_input_file(sys.argv[1])
+inputs = load_input_file(inputfile)
+
+print(inputs)
 
 # ID = inputs['file'].split('.')[0]
 

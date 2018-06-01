@@ -10,7 +10,7 @@ def convert_to_number(item):
             # Check if Float
             val = float(item)
         except ValueError:
-            # If neither Int nor Float return original item 
+            # If neither Int nor Float return original item
             val = item
     return val
 
@@ -41,11 +41,11 @@ def load_input_file(filepath):
         temp = contents[line]
         if (temp[0] is not '#') and (temp[0] is not '\n'):    # Ignore Commmented Lines
             strs = temp.split('=')    # Divide based on position of "="
-            key = strs[0].strip(' \n\t')
+            key = strs[0].strip(' \n\t[]')
             val =  strs[1].split(',')    # Split comma separated values
             if len(val) > 1:    # Processes if there is more than one value,
                 for n in range(len(val)):
-                    val[n] = convert_to_number(str(val[n].strip(' \n\t')))
+                    val[n] = convert_to_number(str(val[n].strip(" \n\t[]'")))
             else:
                 val = convert_to_number(val[0].strip(' \n\t'))
 
