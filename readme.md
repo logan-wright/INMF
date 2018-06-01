@@ -16,11 +16,11 @@ endmember.
 - Developed for application to data from the Hyperspectral Imager for the Coastal Ocean (HICO)
 - 2 NMF algorithms are implemented:
 	- NMF (Lee & Seung, 2001)
-  - INMF (Wright et al, 2018)
+  - INMF (Wright et al, 2018 *In Prep*)
 
 Inputs:
 - See example input file ‘SampleINMF.in’ for a full description of input options
-- HICO image (HICO images can be downloaded from the NASA Ocean Color Website [https://oceancolor.gsfc.nasa.gov/])
+- HICO image (HICO images can be downloaded from the NASA Ocean Color Website (https://oceancolor.gsfc.nasa.gov)
 - Initial endmember spectra (Currently this data should be in a MATLAB save file
     format [.mat]) This can be generated using the included 'calc_radiance'
     function with a reflectance spectra, modtran atmospheric correction output
@@ -43,3 +43,9 @@ the user to enter all of input data
     python3 inmf_master
 This approach will generate an input file based on user inputs and then run the
 INMF code using those inputs.
+
+## Planned Improvements
+- Add images and example result to this readme
+- Revise core INMF/NMF functions to reduce execution time
+- Improve GUI functionality (including in-GUI plots)
+
