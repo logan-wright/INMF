@@ -198,7 +198,7 @@ def INMF(NMF_object):
     stable_flag = 0     # Stable_Flag, determines when spectral iteration begins
 
     # Load Irradiance Data and Create Fit Function for Fixed Atmosphere section
-    irrad = np.genfromtxt(self.parameters['irradpath'],skip_header = 3)
+    irrad = np.genfromtxt(NMF_object.parameters['irradpath'],skip_header = 3)
     # Convert to wavelength increments
     irrad[:,0] = 1e7 / irrad[:,0]
     irrad[:,1] = irrad[:,1] * (1 / (irrad[:,0] ** 2)) * 1e11
