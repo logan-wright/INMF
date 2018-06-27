@@ -170,7 +170,7 @@ class NMF_obj(object):
 
         # Use Normalization Factor to Return to Radiance Units (if neccesary)
         if self.results.norm is not None:
-            dim = self_results.norm.shape
+            dim = self.results.norm.shape
 
             if dim == self.scenesize[2]:
                 INMF_processing.results.A = np.transpose(np.transpose(INMF_processing.results.A)*INMF_processing.results.norm)
