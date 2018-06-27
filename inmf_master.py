@@ -97,10 +97,11 @@ class NMF_result(object):
 
 # Define the NMF object
 class NMF_obj(object):
-    def __init__(self,hico_cube,inputs):
+    def __init__(self,hico_cube,inputs,params):
         self.name = inputs['name']
         self.scene = copy.copy(hico_cube)
         self.inputs = inputs
+        self.parameters = params
         self.endmembers = []
         self.status = ['No Results Computed']
         self.results = []
@@ -228,7 +229,7 @@ print(inputs)
 hypercube = load_hico(os.path.abspath(inputs['file']), fill_saturated = True)
 
 # Create NMF object
-INMF_processing = NMF_obj(hypercube,inputs)
+INMF_processing = NMF_obj(hypercube,inputs,params)
 
 # Load and apply HICO Vicarious Calibration Gains
 INMF_processing.cal(os.path.abspath(params['caldat']))

@@ -1,18 +1,18 @@
 # PARAMS.txt
 # Path to HICO data
-path = /Users/wrightad/Documents/Data/HICO/
+path = ../Data/HICO/
 
 # Path to MODTRAN DATA
-modpath = /Users/wrightad/Documents/MODTRAN/NMF_HICO/
+modpath = ../Data/MODTRAN/NMF_HICO/
 
 # Path or Irradiance Data
-irradpath = /Users/wrightad/Documents/MODTRAN/DATA/SUN01med2irradwnNormt.dat
+irradpath = ../Data/MODTRAN/DATA/SUN01med2irradwnNormt.dat
 
 # Path to HICO Reflectance Data
-hicoreflpath = /Users/wrightad/Dropbox/LASP/NMF/pro/ASTER_REFL_HICO.mat
+hicoreflpath = ../Data/ASTER_REFL_HICO.mat
 
 # Path to HICO Vicarious Calibration Data
-caldat = HICO_VicariousGains.dat
+caldat = ../Data/HICO_VicariousGains.dat
 
 # Number of processors to use for multiprocessing
 procnum = 1
