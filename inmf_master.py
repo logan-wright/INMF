@@ -170,14 +170,16 @@ class NMF_obj(object):
         nmf.INMF(self)
 
         # Use Normalization Factor to Return to Radiance Units (if neccesary)
-        if self.results.norm is not None:
-            dim = self.results.norm.shape
-
-            if dim == self.scenesize[2]:
+        if self.results.norm is (not None):
+            if self.results.norm is 'pixel':
+                print('Pixel-by-Pixel Spatial Normalization')
                 INMF_processing.results.A = np.transpose(np.transpose(INMF_processing.results.A)*INMF_processing.results.norm)
                 INMF_processing.results.W = np.transpose(np.transpose(INMF_processing.results.W)*INMF_processing.results.norm)
-            elif dim == self.scenesize[0]*self.scenesize[1]:
+            elif self.results.norm is 'spectral':
+                print('Spectral Normalization')
                 INMF_processing.results.A = INMF_processing.results.A*INMF_processing.results.norm
+            elif self.result.norm is 'aso'
+                print('ASO Normalization')
             else:
                 print('Unable to Recogize Normalization Dimensions')
 

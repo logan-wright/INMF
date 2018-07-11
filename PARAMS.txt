@@ -3,16 +3,16 @@
 path = ../Data/HICO/
 
 # Path to MODTRAN DATA
-modpath = ../Data/MODTRAN/NMF_HICO/
+modpath = Data/MODTRAN/NMF_HICO/
 
 # Path or Irradiance Data
-irradpath = ../Data/MODTRAN/DATA/SUN01med2irradwnNormt.dat
+irradpath = Data/MODTRAN/DATA/SUN01med2irradwnNormt.dat
 
 # Path to HICO Reflectance Data
-hicoreflpath = ../Data/ASTER_REFL_HICO.mat
+hicoreflpath = Data/ASTER_REFL_HICO.mat
 
 # Path to HICO Vicarious Calibration Data
-caldat = ../Data/HICO_VicariousGains.dat
+caldat = Data/HICO_VicariousGains.dat
 
 # Number of processors to use for multiprocessing
 procnum = 1

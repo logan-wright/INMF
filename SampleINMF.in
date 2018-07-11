@@ -5,10 +5,10 @@
 name = HICO_TestSceneSanFranBay
 
 # Include the filepath and name of scene
-file = SampleData/H2014050221301.L1B_ISS
+file = Data/H2014050221301.L1B_ISS
 
 # Path to the endmember data file (Currently needs to be a MATLAB save file [.mat])
-endmember_file = SampleData/H2014050221301_HICO_REFL.mat
+endmember_file = Data/H2014050221301_HICO_REFL.mat
 
 # Name the types of endmember you want to use to initialize the INMF, should be
 # a comma separated list
@@ -18,7 +18,7 @@ SZA = 36.79
 SunElliptic = 1.00787
 
 # Ending Conditions
-max_i = 500
+max_i = 50
 
 # max_i: Maximum number of iterations to use (If max_i is less than 10 the
 #        default value of 500 iterations will be used)
@@ -55,7 +55,7 @@ epsilon = 0
 #           refl_data(wvl) = 2*pi*(HICORadiances(wvl))/(TOASolarIrradiance(wvl))
 #   norm = refl
 #
-# pixel, (Weight by Pixel):
+# pixel, (Weight by Spatial Pixel):
 #       Weights the cost from each pixel inversely-proportionally to the mean
 #       signal over all wavelengths in the pixel. So that errors from very
 #       bright pixels does not completely drown out the errors from darker
