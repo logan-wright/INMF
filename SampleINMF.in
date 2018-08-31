@@ -18,7 +18,7 @@ SZA = 36.79
 SunElliptic = 1.00787
 
 # Ending Conditions
-max_i = 50
+max_i = 25
 
 # max_i: Maximum number of iterations to use (If max_i is less than 10 the
 #        default value of 500 iterations will be used)
@@ -72,7 +72,7 @@ epsilon = 0
 #           weight(wvl) = 1/(mean(HICORadiances(wvl,ALL_PIXELS)))
 #   norm = spectral
 
-norm = aso
+norm = spectral
 delta = 100
 aso_vec = 1,1,1,1,0
 

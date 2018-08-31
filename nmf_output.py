@@ -47,14 +47,14 @@ def plot_nmf(NMF_object, cmaps = dict([('Asphalt','Greys'),
     plt.figure('cost')
     labels = ['Default','Smoothing','ASO']
     # for i in range(len(NMF_object.results.cost)):
-    plt.plot(NMF_object.results.cost[i,:])
+    plt.plot(np.transpose(NMF_object.results.cost))
     plt.xlabel('Number of Iterations')
     plt.ylabel('Cost Function Value')
     plt.legend(labels, loc = 'best')
     plt.savefig(NMF_object.inputs['name'] + '_cost.png', format = 'png', dpi = 300, bbox_inches = 'tight', transparent = True)
     plt.close('cost')
 
-    plt.figure('soln',figsize = (5.3,4))
+    plt.figure('init',figsize = (5.3,4))
     plt.xlabel('Wavelength [$nm$]')
     plt.ylabel('Radiance [$W m^{-2} sr^{-1} \mu m^{-1}$]')
     for i in range(K):
@@ -64,7 +64,7 @@ def plot_nmf(NMF_object, cmaps = dict([('Asphalt','Greys'),
     x01,xn1,y01,yn1 = plt.axis()
     plt.legend(ncol = 2, columnspacing = 1, handletextpad = 0)
 
-    plt.figure('init',figsize = (5.3,4))
+    plt.figure('soln',figsize = (5.3,4))
     plt.xlabel('Wavelength [$nm$]')
     plt.ylabel('Radiance [$W m^{-2} sr^{-1} \mu m^{-1}$]')
     for i in range(K):
@@ -100,14 +100,14 @@ def plot_nmf(NMF_object, cmaps = dict([('Asphalt','Greys'),
         cbar = plt.colorbar(cax, ticks = [0, 0.2, 0.4, 0.6, 0.8], orientation = 'horizontal', pad = 0.025, aspect = 7, shrink = 0.9)
         cbar.ax.tick_params(labelsize = 14)
 
-        plt.savefig(timenow_str + '_' + NMF_object.inputs['name'] + '_' + NMF_object.endmembers['titles'][i] + '.png', format = 'png', dpi = 300,bbox_inches = 'tight', transparent = True)
+        plt.savefig(NMF_object.inputs['name'] + '_' + NMF_object.endmembers['titles'][i] + '.png', format = 'png', dpi = 300,bbox_inches = 'tight', transparent = True)
         plt.close()
 
-    # plt.figure('resid',figsize = ((J/I*10),10))
-    # plt.contourf(output['residual'],cmap = 'inferno')
-    # plt.colorbar()
-    # plt.savefig(timenow_str + '_' + NMF_object.inputs['name'] + '_resid' + '.png', format = 'png', dpi = 300,bbox_inches = 'tight', transparent = True)
-    # plt.close('resid')
+    plt.figure('resid',figsize = ((J/I*10),10))
+    plt.contourf(NMF_object.results.residual,cmap = 'inferno')
+    plt.colorbar()
+    plt.savefig(NMF_object.inputs['name'] + '_resid' + '.png', format = 'png', dpi = 300,bbox_inches = 'tight', transparent = True)
+    plt.close('resid')
 
 def nmf_output(output):
     """

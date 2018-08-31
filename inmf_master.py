@@ -171,14 +171,14 @@ class NMF_obj(object):
 
         # Use Normalization Factor to Return to Radiance Units (if neccesary)
         if self.results.norm is (not None):
-            if self.results.norm is 'pixel':
+            if self.results.norm == 'pixel':
                 print('Pixel-by-Pixel Spatial Normalization')
                 INMF_processing.results.A = np.transpose(np.transpose(INMF_processing.results.A)*INMF_processing.results.norm)
                 INMF_processing.results.W = np.transpose(np.transpose(INMF_processing.results.W)*INMF_processing.results.norm)
-            elif self.results.norm is 'spectral':
+            elif self.results.norm == 'spectral':
                 print('Spectral Normalization')
                 INMF_processing.results.A = INMF_processing.results.A*INMF_processing.results.norm
-            elif self.result.norm is 'aso'
+            elif self.result.norm == 'aso':
                 print('ASO Normalization')
             else:
                 print('Unable to Recogize Normalization Dimensions')
@@ -198,7 +198,7 @@ class NMF_obj(object):
             self.INMF() must be called before this function
         '''
         # Check status
-        if self.status is not 'Results Computed!':
+        if self.status != 'Results Computed!':
             print('INMF results not yet computed')
             return
         else:
@@ -210,7 +210,7 @@ class NMF_obj(object):
             self.INMF() must be called before this function
         '''
         # Check status
-        if self.status is not 'Results Computed!':
+        if self.status != 'Results Computed!':
             print('INMF results not yet computed')
             return
         else:
